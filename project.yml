@@ -42,7 +42,7 @@ targets:
       - package: LocalStore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.vertep.Vertep
+        PRODUCT_BUNDLE_IDENTIFIER: app.vertep.ios
         TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Vertep

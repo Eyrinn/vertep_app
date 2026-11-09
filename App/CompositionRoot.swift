@@ -17,7 +17,7 @@ import os
 final class CompositionRoot {
     let folderStore: any FolderStore
 
-    private let logger = Logger(subsystem: "app.vertep.Vertep", category: "CompositionRoot")
+    private let logger = Logger(subsystem: "app.vertep.ios", category: "CompositionRoot")
 
     init() {
         let url = URL.applicationSupportDirectory.appending(path: "Vertep/Vertep.sqlite")

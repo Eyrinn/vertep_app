@@ -1,0 +1,67 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# The source of truth for the Xcode project. Run scripts/generate.sh to generate
+# Vertep.xcodeproj from it; the generated project is never committed.
+
+name: Vertep
+
+options:
+  bundleIdPrefix: app.vertep
+  developmentLanguage: en
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+
+# The optional Private/ project. scripts/generate.sh sets VERTEP_PRO to YES only when
+# Private/Package.swift exists, so a clone without Private/ never reads this file.
+include:
+  - path: Private/project.pro.yml
+    enable: ${VERTEP_PRO}
+
+packages:
+  Core:
+    path: Packages/Core
+  LocalStore:
+    path: Packages/LocalStore
+
+targets:
+  Vertep:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+    dependencies:
+      - package: Core
+      - package: LocalStore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.vertep.ios
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Vertep
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+
+schemes:
+  Vertep:
+    build:
+      targets:
+        Vertep: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - package: Core/CoreTests
+        - package: LocalStore/LocalStoreTests

@@ -1,0 +1,23 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "My folder" : {
+      "comment" : "Name of the personal folder the app creates on its first launch.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My folder"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Моя папка"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

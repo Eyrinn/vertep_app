@@ -20,7 +20,7 @@ public enum Appearance: String, CaseIterable, Identifiable, Sendable {
 
     public var id: String { rawValue }
 
-    /// The color scheme the app asks for. `nil` follows the device.
+    /// The color scheme the app applies to its windows. `nil` follows the device.
     public var colorScheme: ColorScheme? {
         switch self {
         case .system: nil

@@ -25,11 +25,8 @@ struct VertepApp: App {
     /// appearance back to the device at once, without a restart.
     @MainActor
     private func apply(_ appearance: Appearance) {
-        let style: UIUserInterfaceStyle = switch appearance {
-        case .system: .unspecified
-        case .light: .light
-        case .dark: .dark
-        }
+        // No color scheme means System: `.unspecified` lets the device decide.
+        let style = appearance.colorScheme.map(UIUserInterfaceStyle.init) ?? .unspecified
         for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
             for window in scene.windows {
                 window.overrideUserInterfaceStyle = style

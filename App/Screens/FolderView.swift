@@ -32,12 +32,11 @@ private struct FolderTab: View {
 
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
-        HStack(spacing: 6) {
+        HStack(spacing: Primitives.Space._4) {
             Text("My folder", comment: "Name of the personal folder the app creates on its first launch.")
                 .font(.system(size: 15, weight: .semibold))
             Text(count, format: .number)
                 .font(.system(size: 12))
-                .opacity(0.7)
         }
         .foregroundStyle(theme.bgCanvas)
         .padding(.horizontal, Primitives.Space._16)
@@ -67,7 +66,7 @@ private struct EmptyFolderCard: View {
                 .accessibilityAddTraits(.isHeader)
             Text("Add your first film", comment: "Hint on the empty folder card.")
                 .font(.system(size: 13))
-                .foregroundStyle(theme.textOnBrand.opacity(0.7))
+                .foregroundStyle(theme.textOnBrand)
             AccentButton(
                 title: Text("To search", comment: "Button on the empty folder card. It goes to Home, where search starts."),
                 systemImage: "arrow.right",

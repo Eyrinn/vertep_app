@@ -26,7 +26,11 @@ public struct SearchConfiguration: Sendable, Equatable {
     /// Reads the configuration from an Info.plist. An empty value, a value whose build
     /// setting was never expanded, and a base URL that is not an HTTPS URL with a host
     /// read as not configured.
-    public init(infoDictionary: [String: Any]?) {
+    ///
+    /// - Parameter readsPersonalKey: Whether to read the personal TMDB key. Only a debug
+    ///   build reads it. When this is false, the key reads as not configured, whatever
+    ///   the Info.plist holds.
+    public init(infoDictionary: [String: Any]?, readsPersonalKey: Bool) {
         func value(_ key: String) -> String? {
             guard let text = (infoDictionary?[key] as? String)?.trimmingCharacters(in: .whitespaces),
                   !text.isEmpty, !text.contains("$(") else { return nil }
@@ -34,7 +38,10 @@ public struct SearchConfiguration: Sendable, Equatable {
         }
         let url = value(Self.proxyBaseURLKey).flatMap(URL.init(string:))
         let isHTTPS = url?.scheme?.lowercased() == "https" && url?.host()?.isEmpty == false
-        self.init(proxyBaseURL: isHTTPS ? url : nil, tmdbAPIKey: value(Self.tmdbAPIKeyKey))
+        self.init(
+            proxyBaseURL: isHTTPS ? url : nil,
+            tmdbAPIKey: readsPersonalKey ? value(Self.tmdbAPIKeyKey) : nil
+        )
     }
 
     /// Which search a build uses.

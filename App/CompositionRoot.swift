@@ -25,7 +25,10 @@ final class CompositionRoot {
 
     init() {
         titleSearch = Self.makeTitleSearch(
-            SearchConfiguration(infoDictionary: Bundle.main.infoDictionary),
+            SearchConfiguration(
+                infoDictionary: Bundle.main.infoDictionary,
+                readsPersonalKey: Self.readsPersonalKey
+            ),
             logger: logger
         )
         let url = URL.applicationSupportDirectory.appending(path: "Vertep/Vertep.sqlite")
@@ -38,8 +41,16 @@ final class CompositionRoot {
         }
     }
 
+    /// Whether this build reads the personal TMDB key. Only a debug build does: a release
+    /// build is given to people, and the key is a personal one.
+    #if DEBUG
+    private static let readsPersonalKey = true
+    #else
+    private static let readsPersonalKey = false
+    #endif
+
     /// Picks the title search: the proxy when a proxy URL is configured and the device
-    /// supports App Attest, otherwise TMDB directly when a personal key is configured,
+    /// supports App Attest, otherwise TMDB directly when a debug build has a personal key,
     /// otherwise a search that reports that it is not configured.
     private static func makeTitleSearch(_ configuration: SearchConfiguration, logger: Logger) -> any TitleSearch {
         let attestation = DeviceAppAttestation()

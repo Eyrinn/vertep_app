@@ -9,11 +9,11 @@ import Testing
 @Suite struct SearchConfigurationTests {
     let proxy = URL(string: "https://proxy.example.com")!
 
-    private func configuration(proxy: String?, key: String?) -> SearchConfiguration {
+    private func configuration(proxy: String?, key: String?, readsPersonalKey: Bool = true) -> SearchConfiguration {
         var info: [String: Any] = [:]
         info[SearchConfiguration.proxyBaseURLKey] = proxy
         info[SearchConfiguration.tmdbAPIKeyKey] = key
-        return SearchConfiguration(infoDictionary: info)
+        return SearchConfiguration(infoDictionary: info, readsPersonalKey: readsPersonalKey)
     }
 
     @Test func valuesAreRead() {
@@ -36,7 +36,20 @@ import Testing
     }
 
     @Test func noInfoDictionaryIsNotConfigured() {
-        #expect(SearchConfiguration(infoDictionary: nil).choice(appAttestSupported: true) == .notConfigured)
+        #expect(
+            SearchConfiguration(infoDictionary: nil, readsPersonalKey: true)
+                .choice(appAttestSupported: true) == .notConfigured
+        )
+    }
+
+    @Test func aBuildThatDoesNotReadThePersonalKeyIgnoresIt() {
+        let read = configuration(proxy: "https://proxy.example.com", key: "example-key", readsPersonalKey: false)
+        #expect(read == SearchConfiguration(proxyBaseURL: proxy, tmdbAPIKey: nil))
+    }
+
+    @Test func aBuildThatDoesNotReadThePersonalKeyIsNotConfiguredWithoutAppAttest() {
+        let read = configuration(proxy: "https://proxy.example.com", key: "example-key", readsPersonalKey: false)
+        #expect(read.choice(appAttestSupported: false) == .notConfigured)
     }
 
     @Test func theProxyIsChosenWhenTheDeviceSupportsAppAttest() {

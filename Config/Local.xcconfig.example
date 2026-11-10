@@ -7,8 +7,9 @@
 // again after you create the file. Leave a value empty to turn that search off.
 //
 // The app searches through the proxy when a proxy URL is set and the device supports
-// App Attest, which the Simulator does not. Otherwise it searches TMDB directly when a
-// personal key is set. With neither, search reports that it is not configured.
+// App Attest, which the Simulator does not. Otherwise a debug build searches TMDB
+// directly when a personal key is set. With neither, search reports that it is not
+// configured.
 
 // The base URL of a search proxy that follows docs/search-api.md, with HTTPS. In this
 // file `//` starts a comment, so write the slashes after the scheme as `/$()/`, for

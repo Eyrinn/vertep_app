@@ -14,7 +14,9 @@ import Testing
 /// VertepDeviceTests scheme on a device.
 @Suite struct SearchDeviceTests {
     /// The proxy URL the app under test was built with.
-    static let proxyBaseURL = SearchConfiguration(infoDictionary: Bundle.main.infoDictionary).proxyBaseURL
+    static let proxyBaseURL = SearchConfiguration(
+        infoDictionary: Bundle.main.infoDictionary, readsPersonalKey: false
+    ).proxyBaseURL
 
     @Test(
         .enabled(if: DeviceAppAttestation().isSupported, "App Attest runs only on a physical device"),

@@ -47,10 +47,11 @@ targets:
       - package: DesignSystem
       - package: Search
     # The search settings: empty in a plain clone, set on one machine by the git-ignored
-    # Config/Local.xcconfig.
+    # Config/Local.xcconfig. The release file clears the personal TMDB key, so only a
+    # debug build carries it.
     configFiles:
       Debug: Config/App.xcconfig
-      Release: Config/App.xcconfig
+      Release: Config/App.Release.xcconfig
     settings:
       configs:
         # The App Attest environment the app attests in. The entitlements file reads it.

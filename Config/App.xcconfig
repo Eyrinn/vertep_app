@@ -10,7 +10,8 @@
 // The base URL of a search proxy that follows docs/search-api.md.
 VERTEP_PROXY_BASE_URL =
 
-// A personal TMDB API key, used where the proxy is not.
+// A personal TMDB API key, used where the proxy is not. Only a debug build carries it:
+// Config/App.Release.xcconfig clears it.
 VERTEP_TMDB_API_KEY =
 
 #include? "Local.xcconfig"

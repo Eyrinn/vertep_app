@@ -14,7 +14,10 @@ import Foundation
 ///
 /// Each kind of failure is retried at most once per search: an expired session, a
 /// challenge the proxy did not accept, and a stored key the proxy rejected or the device
-/// lost. One search therefore sends a bounded number of requests.
+/// lost. The session a search opens again after an expired session gets only the retries
+/// that the first session left. A search that waits for a session another search is
+/// opening counts the retries that opening used as its own. One search therefore sends a
+/// bounded number of requests.
 public actor ProxyTitleSearch: TitleSearch {
     private let baseURL: URL
     private let attestation: any AppAttestation
@@ -24,7 +27,27 @@ public actor ProxyTitleSearch: TitleSearch {
     private var sessionToken: String?
     /// The session being opened, which every search that needs a session waits for, so
     /// that searches started together open one session.
-    private var opening: Task<String, any Error>?
+    private var opening: Task<OpenedSession, any Error>?
+
+    /// The retries that one search can still make. The contract allows each kind once.
+    private struct Retries: Sendable {
+        /// A new challenge after the proxy did not accept one.
+        var newChallenge = true
+        /// A new key after the proxy rejected the stored key or the device lost it.
+        var newKey = true
+
+        /// The retries that are left when `other` is also left: a retry that either of
+        /// them used is used.
+        func intersection(_ other: Retries) -> Retries {
+            Retries(newChallenge: newChallenge && other.newChallenge, newKey: newKey && other.newKey)
+        }
+    }
+
+    /// A session that was opened, and the retries left to the search that opened it.
+    private struct OpenedSession: Sendable {
+        var token: String
+        var retries: Retries
+    }
 
     public init(
         baseURL: URL,
@@ -40,13 +63,15 @@ public actor ProxyTitleSearch: TitleSearch {
 
     public func search(_ query: String, language: SearchLanguage) async throws(TitleSearchError) -> [TitleSearchResult] {
         guard let query = SearchQuery(query) else { return [] }
-        let token = try await session()
+        var retries = Retries()
+        let token = try await session(&retries)
         if let results = try await search(query, language: language, token: token) {
             return results
         }
-        // The proxy no longer knows the session. Open a new one and search once more.
+        // The proxy no longer knows the session. Open a new one and search once more. The
+        // new session gets only the retries that the first one left.
         discard(token)
-        let renewed = try await session()
+        let renewed = try await session(&retries)
         if let results = try await search(query, language: language, token: renewed) {
             return results
         }
@@ -80,17 +105,22 @@ public actor ProxyTitleSearch: TitleSearch {
 
     // MARK: - Session
 
-    private func session() async throws(TitleSearchError) -> String {
+    /// Returns the current session, or opens one with the retries this search has left.
+    /// The retries that the opening used are removed from `retries`.
+    private func session(_ retries: inout Retries) async throws(TitleSearchError) -> String {
         if let sessionToken { return sessionToken }
-        let task: Task<String, any Error>
+        let task: Task<OpenedSession, any Error>
         if let opening {
             task = opening
         } else {
-            task = Task { try await self.openAndKeepSession() }
+            let allowed = retries
+            task = Task { try await self.openAndKeepSession(allowed) }
             opening = task
         }
         do {
-            return try await task.value
+            let opened = try await task.value
+            retries = retries.intersection(opened.retries)
+            return opened.token
         } catch let error as TitleSearchError {
             throw error
         } catch {
@@ -102,21 +132,27 @@ public actor ProxyTitleSearch: TitleSearch {
         if sessionToken == token { sessionToken = nil }
     }
 
-    private func openAndKeepSession() async throws(TitleSearchError) -> String {
+    private func openAndKeepSession(_ allowed: Retries) async throws(TitleSearchError) -> OpenedSession {
         defer { opening = nil }
-        let token = try await openSession()
+        var retries = allowed
+        let token = try await openSession(&retries)
         sessionToken = token
-        return token
+        return OpenedSession(token: token, retries: retries)
     }
 
-    /// Opens a session with the stored key. When there is none, or the proxy rejects it,
-    /// or the device no longer has it, attests a new key and opens a session with that.
-    private func openSession() async throws(TitleSearchError) -> String {
+    /// Opens a session with the stored key. When there is none, attests a new key and
+    /// opens a session with that. When the proxy rejects the stored key, or the device no
+    /// longer has it, does the same if `retries` still allows a new key, and otherwise
+    /// fails.
+    private func openSession(_ retries: inout Retries) async throws(TitleSearchError) -> String {
         if let keyID = keyStore.load() {
-            if let token = try await openSession(keyID: keyID, attestingKey: false) {
+            if let token = try await openSession(keyID: keyID, attestingKey: false, retries: &retries) {
                 return token
             }
             keyStore.delete()
+            // This search already replaced a key, and the proxy rejected the new one too.
+            guard retries.newKey else { throw .failed }
+            retries.newKey = false
         }
         let keyID: String
         do {
@@ -125,7 +161,7 @@ public actor ProxyTitleSearch: TitleSearch {
             throw .unavailable
         }
         keyStore.save(keyID)
-        if let token = try await openSession(keyID: keyID, attestingKey: true) {
+        if let token = try await openSession(keyID: keyID, attestingKey: true, retries: &retries) {
             return token
         }
         // The proxy rejected a key it has just seen attested. A retry would only repeat it.
@@ -134,9 +170,14 @@ public actor ProxyTitleSearch: TitleSearch {
     }
 
     /// Attests the key, or signs an assertion with it, and opens a session. Returns nil
-    /// when the proxy rejects the key or the device reports the key as invalid.
-    private func openSession(keyID: String, attestingKey: Bool) async throws(TitleSearchError) -> String? {
-        for attempt in 1...2 {
+    /// when the proxy rejects the key or the device reports the key as invalid. Gets a new
+    /// challenge once when the proxy does not accept one and `retries` still allows it.
+    private func openSession(
+        keyID: String,
+        attestingKey: Bool,
+        retries: inout Retries
+    ) async throws(TitleSearchError) -> String? {
+        while true {
             let challenge = try await challenge()
             let clientDataHash = Data(SHA256.hash(data: challenge.bytes))
             let proof: Data
@@ -165,13 +206,13 @@ public actor ProxyTitleSearch: TitleSearch {
                 return session.sessionToken
             case .failure(.keyRejected):
                 return nil
-            case .failure(.invalidChallenge) where attempt == 1:
+            case .failure(.invalidChallenge) where retries.newChallenge:
+                retries.newChallenge = false
                 continue
             case .failure(let code):
                 throw code.searchError
             }
         }
-        throw .failed
     }
 
     /// Gets a new challenge: its text as the proxy sent it, and its bytes.

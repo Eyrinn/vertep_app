@@ -235,6 +235,74 @@ import Testing
         #expect(http.requests(to: "/v1/sessions/attest").count == 1)
     }
 
+    @Test func aSearchReplacesAKeyOnlyOnceAlsoWhenItRenewsTheSession() async throws {
+        let http = FakeHTTP([
+            "/v1/challenge": [ProxyAnswers.challenge(1), ProxyAnswers.challenge(2), ProxyAnswers.challenge(3)],
+            "/v1/sessions/assert": [.error(403, "key_rejected")],
+            "/v1/sessions/attest": [ProxyAnswers.session("token-1")],
+            "/v1/search": [.error(401, "session_expired"), ProxyAnswers.results],
+        ])
+        let attestation = FakeAttestation()
+        let keys = InMemoryKeyIDStore(keyID: "stored-key")
+        let search = makeSearch(http, attestation: attestation, keys: keys)
+
+        // The stored key is rejected and replaced by key-1. The session expires, and the
+        // renewal's assertion with key-1 is rejected too. The search already replaced a
+        // key, so it fails instead of attesting a second new key.
+        await #expect(throws: TitleSearchError.failed) {
+            try await search.search("example", language: .en)
+        }
+        #expect(attestation.calls == [
+            .assert(keyID: "stored-key", clientDataHash: hash(ofChallenge: 1)),
+            .generateKey,
+            .attest(keyID: "key-1", clientDataHash: hash(ofChallenge: 2)),
+            .assert(keyID: "key-1", clientDataHash: hash(ofChallenge: 3)),
+        ])
+        #expect(http.requests(to: "/v1/search").count == 1)
+        #expect(keys.load() == nil)
+    }
+
+    @Test func aSearchReplacesAChallengeOnlyOnceAlsoWhenItRenewsTheSession() async throws {
+        let http = FakeHTTP([
+            "/v1/challenge": [ProxyAnswers.challenge(1), ProxyAnswers.challenge(2), ProxyAnswers.challenge(3)],
+            "/v1/sessions/assert": [
+                .error(400, "invalid_challenge"), ProxyAnswers.session("token-1"), .error(400, "invalid_challenge"),
+            ],
+            "/v1/search": [.error(401, "session_expired"), ProxyAnswers.results],
+        ])
+        let search = makeSearch(http, keys: InMemoryKeyIDStore(keyID: "stored-key"))
+
+        // The first challenge is refused and replaced. The session expires, and the
+        // renewal's challenge is refused too. The search already replaced a challenge, so
+        // it fails instead of getting a fourth one.
+        await #expect(throws: TitleSearchError.failed) {
+            try await search.search("example", language: .en)
+        }
+        #expect(http.requests(to: "/v1/challenge").count == 3)
+        #expect(http.requests(to: "/v1/sessions/assert").count == 3)
+        #expect(http.requests(to: "/v1/search").count == 1)
+    }
+
+    @Test func aRenewalAfterASearchWithNoRetriesCanStillReplaceAKey() async throws {
+        let http = FakeHTTP([
+            "/v1/challenge": [ProxyAnswers.challenge(1), ProxyAnswers.challenge(2), ProxyAnswers.challenge(3)],
+            "/v1/sessions/assert": [ProxyAnswers.session("token-1"), .error(403, "key_rejected")],
+            "/v1/sessions/attest": [ProxyAnswers.session("token-2")],
+            "/v1/search": [.error(401, "session_expired"), ProxyAnswers.results],
+        ])
+        let attestation = FakeAttestation()
+        let keys = InMemoryKeyIDStore(keyID: "stored-key")
+
+        // The first session used no retry, so the renewal may replace the rejected key once.
+        let results = try await makeSearch(http, attestation: attestation, keys: keys).search("example", language: .en)
+
+        #expect(results.count == 2)
+        #expect(attestation.calls.filter { $0 == .generateKey }.count == 1)
+        #expect(keys.load() == "key-1")
+        #expect(http.requests(to: "/v1/search").map { $0.value(forHTTPHeaderField: "Authorization") }
+            == ["Bearer token-1", "Bearer token-2"])
+    }
+
     @Test func aRefusedChallengeIsReplacedOnce() async throws {
         let http = FakeHTTP([
             "/v1/challenge": [ProxyAnswers.challenge(1), ProxyAnswers.challenge(2)],

@@ -1,0 +1,84 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# Builds and tests the open variant of the app on every pull request, with Xcode 27.
+# The job fails when the runner has no Xcode 27. It never builds with another version.
+
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  XCODE_MAJOR: "27"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  open-build:
+    name: Open build and tests
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        # actions/checkout v7.0.1, pinned to its commit. It does not fetch submodules, so
+        # Private/ is never present and the job builds the open variant.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Select Xcode ${{ env.XCODE_MAJOR }}
+        run: |
+          xcode_app="$(scripts/find-xcode.sh "$XCODE_MAJOR")"
+          sudo xcode-select --switch "$xcode_app"
+          xcodebuild -version
+
+      - name: Install mise
+        # scripts/generate.sh runs the XcodeGen version that .mise.toml pins through mise.
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        run: |
+          brew install mise
+          mise --version
+
+      - name: Generate the project
+        run: scripts/generate.sh
+
+      - name: Choose a simulator
+        run: |
+          udid="$(xcrun simctl list devices available --json | jq -r '
+            [.devices | to_entries | sort_by(.key)[]
+              | select(.key | contains(".iOS-")) | .value[]
+              | select(.name | startswith("iPhone"))]
+            | last | .udid // empty')"
+          if [[ -z "$udid" ]]; then
+            echo "::error title=No iPhone simulator::Xcode $XCODE_MAJOR on this runner has no available iPhone simulator."
+            exit 1
+          fi
+          xcrun simctl list devices available | grep "$udid"
+          echo "DESTINATION=platform=iOS Simulator,id=$udid" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: |
+          xcodebuild build-for-testing \
+            -project Vertep.xcodeproj \
+            -scheme Vertep \
+            -destination "$DESTINATION" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData"
+
+      - name: Test
+        run: |
+          xcodebuild test-without-building \
+            -project Vertep.xcodeproj \
+            -scheme Vertep \
+            -destination "$DESTINATION" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData"

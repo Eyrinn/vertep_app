@@ -13,6 +13,9 @@ struct SettingsSheet: View {
 
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
+        // The design draws the rows as cards on a darker ground: the canvas in the light
+        // theme and the elevated background in the dark theme.
+        let ground = scheme == .dark ? theme.bgElevated : theme.bgCanvas
         NavigationStack {
             List {
                 Section {
@@ -30,14 +33,16 @@ struct SettingsSheet: View {
                     }
                     .pickerStyle(.navigationLink)
                     .foregroundStyle(theme.textPrimary)
-                    .listRowBackground(theme.bgElevated)
+                    .listRowBackground(theme.bgSheet)
                 } header: {
                     Text("App", comment: "Header of the settings section about the app itself.")
-                        .foregroundStyle(theme.textSecondary)
+                        .font(.system(size: 13))
+                        .textCase(.uppercase)
+                        .foregroundStyle(theme.textTertiary)
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(theme.bgSheet)
+            .background(ground)
             .navigationTitle(Text("Settings", comment: "Title of the settings sheet, and the label of the gear that opens it."))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -46,14 +51,19 @@ struct SettingsSheet: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(theme.textPrimary)
+                            .frame(width: 36, height: 36)
+                            .background(theme.materialChrome, in: Circle())
+                            .overlay(Circle().strokeBorder(theme.materialChromeStroke, lineWidth: 1))
                     }
+                    .buttonStyle(.plain)
                     .accessibilityLabel(Text("Close", comment: "Button that closes the settings sheet."))
                 }
             }
         }
         .tint(theme.textAccent)
-        .presentationBackground(theme.bgSheet)
+        .presentationBackground(ground)
     }
 }
 

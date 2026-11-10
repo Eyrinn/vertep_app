@@ -65,25 +65,33 @@ struct GearButton: View {
 
 /// The design's filled accent button.
 struct AccentButton: View {
+    /// The two sizes the design uses: the large button of a screen, and the compact one
+    /// inside a card.
+    enum Size {
+        case large
+        case compact
+    }
+
     let title: Text
     var systemImage: String?
+    var size: Size = .large
     let action: () -> Void
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
         Button(action: action) {
-            HStack(spacing: Primitives.Space._8) {
+            HStack(spacing: size == .large ? Primitives.Space._8 : Primitives.Space._4) {
                 title
                 if let systemImage {
                     Image(systemName: systemImage)
                         .accessibilityHidden(true)
                 }
             }
-            .font(.system(size: 17, weight: .semibold))
+            .font(.system(size: size == .large ? 17 : 15, weight: .semibold))
             .foregroundStyle(theme.textOnAccent)
-            .padding(.horizontal, Primitives.Space._24)
-            .frame(minHeight: 50)
+            .padding(.horizontal, size == .large ? Primitives.Space._24 : Primitives.Space._20)
+            .frame(minHeight: size == .large ? 50 : 36)
             .background(theme.accentFill, in: Capsule())
         }
         .buttonStyle(.plain)

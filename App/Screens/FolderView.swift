@@ -32,13 +32,16 @@ private struct FolderTab: View {
 
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
+        // The selected tab is drawn in the other theme's colors, as the design shows it.
+        let inverse = ThemeTokens.forScheme(scheme == .dark ? .light : .dark)
         HStack(spacing: Primitives.Space._4) {
             Text("My folder", comment: "Name of the personal folder the app creates on its first launch.")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(inverse.textPrimary)
             Text(count, format: .number)
                 .font(.system(size: 12))
+                .foregroundStyle(inverse.textTertiary)
         }
-        .foregroundStyle(theme.bgCanvas)
         .padding(.horizontal, Primitives.Space._16)
         .frame(height: 40)
         .background(theme.bgInverse, in: Capsule())
@@ -66,16 +69,17 @@ private struct EmptyFolderCard: View {
                 .accessibilityAddTraits(.isHeader)
             Text("Add your first film", comment: "Hint on the empty folder card.")
                 .font(.system(size: 13))
-                .foregroundStyle(theme.textOnBrand)
+                .foregroundStyle(Primitives.Color.curtain200)
             AccentButton(
                 title: Text("To search", comment: "Button on the empty folder card. It goes to Home, where search starts."),
                 systemImage: "arrow.right",
+                size: .compact,
                 action: goHome
             )
             .padding(.top, Primitives.Space._16)
         }
         .multilineTextAlignment(.center)
-        .padding(.vertical, Primitives.Space._40)
+        .padding(.vertical, Primitives.Space._32)
         .padding(.horizontal, Primitives.Space._16)
         .frame(maxWidth: .infinity)
         .background(theme.bgBrand, in: RoundedRectangle(cornerRadius: Primitives.Radius._24, style: .continuous))

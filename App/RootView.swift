@@ -43,7 +43,6 @@ struct RootView: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             TopBar(page: $page, showsSettings: $showsSettings)
                 .padding(.horizontal, Primitives.Space._24)
-                .padding(.top, Primitives.Space._8)
         }
         .background(theme.bgCanvas.ignoresSafeArea())
         .sheet(isPresented: $showsSettings) {

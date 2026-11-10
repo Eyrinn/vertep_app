@@ -13,7 +13,7 @@ struct PageIndicator: View {
 
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
-        HStack(spacing: Primitives.Space._4) {
+        HStack(spacing: Primitives.Space._4 + Primitives.Space._2) {
             ForEach(Page.allCases) { item in
                 Capsule()
                     .fill(item == page ? theme.textPrimary : theme.textTertiary)

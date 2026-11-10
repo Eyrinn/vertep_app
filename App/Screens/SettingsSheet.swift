@@ -6,6 +6,8 @@ import DesignSystem
 import SwiftUI
 
 /// The settings sheet that the gear on Home opens. It has one section, with the theme.
+/// The design draws it as one page of sections with no nested pages, so the theme is
+/// chosen from a menu on its row.
 struct SettingsSheet: View {
     @AppStorage(Appearance.storageKey) private var appearance: Appearance = .system
     @Environment(\.dismiss) private var dismiss
@@ -16,54 +18,113 @@ struct SettingsSheet: View {
         // The design draws the rows as cards on a darker ground: the canvas in the light
         // theme and the elevated background in the dark theme.
         let ground = scheme == .dark ? theme.bgElevated : theme.bgCanvas
-        NavigationStack {
-            List {
-                Section {
-                    Picker(selection: $appearance) {
-                        ForEach(Appearance.allCases) { option in
-                            Text(option.title).tag(option)
+        ScrollView {
+            VStack(spacing: Primitives.Space._12) {
+                header(theme: theme)
+                SettingsSection(title: Text("App", comment: "Header of the settings section about the app itself.")) {
+                    Menu {
+                        Picker(selection: $appearance) {
+                            ForEach(Appearance.allCases) { option in
+                                Text(option.title).tag(option)
+                            }
+                        } label: {
+                            EmptyView()
                         }
                     } label: {
-                        Label {
-                            Text("Theme", comment: "Settings row that chooses the theme.")
-                        } icon: {
-                            Image(systemName: "circle.lefthalf.filled")
-                                .foregroundStyle(theme.textAccent)
-                        }
-                    }
-                    .pickerStyle(.navigationLink)
-                    .foregroundStyle(theme.textPrimary)
-                    .listRowBackground(theme.bgSheet)
-                } header: {
-                    Text("App", comment: "Header of the settings section about the app itself.")
-                        .font(.system(size: 13))
-                        .textCase(.uppercase)
-                        .foregroundStyle(theme.textTertiary)
-                }
-            }
-            .scrollContentBackground(.hidden)
-            .background(ground)
-            .navigationTitle(Text("Settings", comment: "Title of the settings sheet, and the label of the gear that opens it."))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(theme.textPrimary)
-                            .frame(width: 36, height: 36)
-                            .background(theme.materialChrome, in: Circle())
-                            .overlay(Circle().strokeBorder(theme.materialChromeStroke, lineWidth: 1))
+                        SettingsRow(
+                            icon: "ThemeIcon",
+                            title: Text("Theme", comment: "Settings row that chooses the theme."),
+                            value: Text(appearance.title)
+                        )
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(Text("Close", comment: "Button that closes the settings sheet."))
                 }
             }
+            .padding(Primitives.Space._20)
         }
-        .tint(theme.textAccent)
+        .background(ground)
         .presentationBackground(ground)
+    }
+
+    private func header(theme: ThemeTokens) -> some View {
+        ZStack {
+            Text("Settings", comment: "Title of the settings sheet, and the label of the gear that opens it.")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(theme.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            HStack {
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    // The design draws the cross in the primary text color in the light
+                    // theme and in the tertiary one in the dark theme.
+                    Image("Close")
+                        .renderingMode(.template)
+                        .foregroundStyle(scheme == .dark ? theme.textTertiary : theme.textPrimary)
+                        .frame(width: 44, height: 44)
+                        .background(theme.materialChrome, in: Circle())
+                        .overlay(Circle().strokeBorder(theme.materialChromeStroke, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Close", comment: "Button that closes the settings sheet."))
+            }
+        }
+        .frame(height: 44)
+    }
+}
+
+/// A titled group of settings rows on one card.
+private struct SettingsSection<Rows: View>: View {
+    let title: Text
+    @ViewBuilder let rows: Rows
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let theme = ThemeTokens.forScheme(scheme)
+        VStack(alignment: .leading, spacing: Primitives.Space._8) {
+            title
+                .font(.system(size: 13))
+                .textCase(.uppercase)
+                .foregroundStyle(theme.textTertiary)
+                .padding(.horizontal, Primitives.Space._16)
+                .accessibilityAddTraits(.isHeader)
+            VStack(spacing: 0) {
+                rows
+            }
+            .background(theme.bgSheet, in: RoundedRectangle(cornerRadius: Primitives.Radius._24))
+        }
+    }
+}
+
+/// One settings row: an icon, a title, the current value and a chevron.
+private struct SettingsRow: View {
+    let icon: String
+    let title: Text
+    let value: Text
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let theme = ThemeTokens.forScheme(scheme)
+        HStack(spacing: Primitives.Space._12) {
+            Image(icon)
+                .renderingMode(.template)
+                .foregroundStyle(theme.textAccent)
+                .accessibilityHidden(true)
+            title
+                .foregroundStyle(theme.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            value
+                .foregroundStyle(theme.textSecondary)
+            Image("Chevron")
+                .renderingMode(.template)
+                .foregroundStyle(theme.textTertiary)
+                .accessibilityHidden(true)
+        }
+        .font(.system(size: 17))
+        .padding(Primitives.Space._16)
+        .frame(minHeight: 53)
+        .contentShape(Rectangle())
     }
 }
 

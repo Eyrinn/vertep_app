@@ -23,6 +23,7 @@ struct HomeView: View {
                 comment: "The hint under the prompt on Home."
             )
             .font(.system(size: 15))
+            .lineSpacing(Primitives.Space._2)
             .foregroundStyle(theme.textSecondary)
         }
         .multilineTextAlignment(.center)

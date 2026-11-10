@@ -1,0 +1,168 @@
+{
+  "bg": {
+    "canvas": {
+      "$type": "color",
+      "$value": "#f6f0e2"
+    },
+    "elevated": {
+      "$type": "color",
+      "$value": "#fffbf2"
+    },
+    "sheet": {
+      "$type": "color",
+      "$value": "#fffbf2"
+    },
+    "sunken": {
+      "$type": "color",
+      "$value": "#eae1cc"
+    },
+    "brand": {
+      "$type": "color",
+      "$value": "#451710"
+    },
+    "inverse": {
+      "$type": "color",
+      "$value": "#031926"
+    },
+    "scrim": {
+      "$type": "color",
+      "$value": "#03192652"
+    }
+  },
+  "text": {
+    "primary": {
+      "$type": "color",
+      "$value": "#031926"
+    },
+    "secondary": {
+      "$type": "color",
+      "$value": "#2f5266"
+    },
+    "tertiary": {
+      "$type": "color",
+      "$value": "#42677c"
+    },
+    "accent": {
+      "$type": "color",
+      "$value": "#8a5a0b"
+    },
+    "on-accent": {
+      "$type": "color",
+      "$value": "#031926"
+    },
+    "on-brand": {
+      "$type": "color",
+      "$value": "#fffbf2"
+    }
+  },
+  "accent": {
+    "fill": {
+      "$type": "color",
+      "$value": "#f2b544"
+    },
+    "fill-pressed": {
+      "$type": "color",
+      "$value": "#e09a22"
+    },
+    "tint": {
+      "$type": "color",
+      "$value": "#e09a222e"
+    }
+  },
+  "status": {
+    "watched": {
+      "$type": "color",
+      "$value": "#394f49"
+    },
+    "destructive": {
+      "$type": "color",
+      "$value": "#c7333a"
+    },
+    "watched-tint": {
+      "$type": "color",
+      "$value": "#394f491f"
+    },
+    "destructive-tint": {
+      "$type": "color",
+      "$value": "#c7333a1a"
+    }
+  },
+  "border": {
+    "subtle": {
+      "$type": "color",
+      "$value": "#eae1cc"
+    },
+    "strong": {
+      "$type": "color",
+      "$value": "#d9ccb0"
+    }
+  },
+  "chip": {
+    "fill": {
+      "$type": "color",
+      "$value": "#eae1cc"
+    },
+    "fill-selected": {
+      "$type": "color",
+      "$value": "#394f49"
+    },
+    "text-selected": {
+      "$type": "color",
+      "$value": "#fffbf2"
+    }
+  },
+  "toggle": {
+    "on": {
+      "$type": "color",
+      "$value": "#394f49"
+    }
+  },
+  "disabled": {
+    "fill": {
+      "$type": "color",
+      "$value": "#eae1cc"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "#a08e6c"
+    }
+  },
+  "material": {
+    "chrome": {
+      "$type": "color",
+      "$value": "#fffbf2ad"
+    },
+    "chrome-stroke": {
+      "$type": "color",
+      "$value": "#03192614"
+    }
+  },
+  "poster": {
+    "ring": {
+      "$type": "color",
+      "$value": "#03192624"
+    },
+    "tint": {
+      "$type": "color",
+      "$value": "#f2b5441a"
+    },
+    "mat": {
+      "$type": "color",
+      "$value": "#fffbf2"
+    },
+    "filter": {
+      "$type": "string",
+      "$value": "saturate(0.82) contrast(1.03)"
+    }
+  },
+  "layout": {
+    "margin": {
+      "$type": "dimension",
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      },
+      "$description": "Compact (375): 16"
+    }
+  }
+}

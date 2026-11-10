@@ -76,6 +76,20 @@ targets:
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         SWIFT_EMIT_LOC_STRINGS: YES
 
+  # Runs the attestation and a title search against the configured proxy on a physical
+  # iPhone. It is in its own scheme, never in the Vertep scheme that CI runs.
+  VertepDeviceTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: DeviceTests
+    dependencies:
+      - target: Vertep
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.vertep.ios.devicetests
+        GENERATE_INFOPLIST_FILE: YES
+
 schemes:
   Vertep:
     build:
@@ -90,3 +104,12 @@ schemes:
         - package: LocalStore/LocalStoreTests
         - package: DesignSystem/DesignSystemTests
         - package: Search/SearchTests
+  VertepDeviceTests:
+    build:
+      targets:
+        Vertep: all
+        VertepDeviceTests: [test]
+    test:
+      config: Debug
+      targets:
+        - VertepDeviceTests

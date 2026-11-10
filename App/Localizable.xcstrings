@@ -1,6 +1,176 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "A title, an actor or a mood, by text or by voice" : {
+      "comment" : "The hint under the prompt on Home.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A title, an actor or a mood, by text or by voice"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назва, актор або настрій — текстом чи голосом"
+          }
+        }
+      }
+    },
+    "Add your first film" : {
+      "comment" : "Hint on the empty folder card.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add your first film"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додай перший фільм"
+          }
+        }
+      }
+    },
+    "App" : {
+      "comment" : "Header of the settings section about the app itself.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Застосунок"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "comment" : "Button that closes the settings sheet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрити"
+          }
+        }
+      }
+    },
+    "Dark" : {
+      "comment" : "The dark theme.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Темна"
+          }
+        }
+      }
+    },
+    "Everything in “%@” is already watched" : {
+      "comment" : "Hint on the random screen when no title can be picked. The argument is the folder name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything in “%@” is already watched"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усе в «%@» вже переглянуто"
+          }
+        }
+      }
+    },
+    "Find a film" : {
+      "comment" : "Button on the random screen. It goes to Home, where search starts.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find a film"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Знайти фільм"
+          }
+        }
+      }
+    },
+    "Folder" : {
+      "comment" : "Name of the folder screen, read by VoiceOver.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тека"
+          }
+        }
+      }
+    },
+    "Home" : {
+      "comment" : "Name of the home screen, read by VoiceOver.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Головна"
+          }
+        }
+      }
+    },
+    "Light" : {
+      "comment" : "The light theme.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Світла"
+          }
+        }
+      }
+    },
     "My folder" : {
       "comment" : "Name of the personal folder the app creates on its first launch.",
       "localizations" : {
@@ -13,7 +183,160 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Моя папка"
+            "value" : "Моя тека"
+          }
+        }
+      }
+    },
+    "Nothing to randomize" : {
+      "comment" : "Title of the random screen when no title can be picked.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to randomize"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає що рандомити"
+          }
+        }
+      }
+    },
+    "Random" : {
+      "comment" : "Name of the random pick screen, read by VoiceOver.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Random"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рандом"
+          }
+        }
+      }
+    },
+    "Screen" : {
+      "comment" : "VoiceOver label of the page indicator.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Екран"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "comment" : "Title of the settings sheet, and the label of the gear that opens it.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Налаштування"
+          }
+        }
+      }
+    },
+    "System" : {
+      "comment" : "Theme that follows the device appearance.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системна"
+          }
+        }
+      }
+    },
+    "The folder is empty" : {
+      "comment" : "Title of the empty folder card.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The folder is empty"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тека порожня"
+          }
+        }
+      }
+    },
+    "Theme" : {
+      "comment" : "Settings row that chooses the theme.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тема"
+          }
+        }
+      }
+    },
+    "To search" : {
+      "comment" : "Button on the empty folder card. It goes to Home, where search starts.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To search"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "До пошуку"
+          }
+        }
+      }
+    },
+    "What shall we watch?" : {
+      "comment" : "The prompt on Home while nothing has been searched.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What shall we watch?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Що подивимось?"
           }
         }
       }

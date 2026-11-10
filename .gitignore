@@ -24,3 +24,6 @@ build/
 *.cer
 *.mobileprovision
 *.provisionprofile
+
+# Local search configuration: only Config/Local.xcconfig.example is committed
+Config/Local.xcconfig

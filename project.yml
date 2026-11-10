@@ -32,6 +32,8 @@ packages:
     path: Packages/LocalStore
   DesignSystem:
     path: Packages/DesignSystem
+  Search:
+    path: Packages/Search
 
 targets:
   Vertep:
@@ -43,8 +45,24 @@ targets:
       - package: Core
       - package: LocalStore
       - package: DesignSystem
+      - package: Search
+    # The search settings: empty in a plain clone, set on one machine by the git-ignored
+    # Config/Local.xcconfig.
+    configFiles:
+      Debug: Config/App.xcconfig
+      Release: Config/App.xcconfig
     settings:
+      configs:
+        # The App Attest environment the app attests in. The entitlements file reads it.
+        Debug:
+          VERTEP_APP_ATTEST_ENVIRONMENT: development
+        Release:
+          VERTEP_APP_ATTEST_ENVIRONMENT: production
       base:
+        CODE_SIGN_ENTITLEMENTS: App/Vertep.entitlements
+        # The generated Info.plist is merged with this file, which carries the search
+        # settings to the app.
+        INFOPLIST_FILE: App/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: app.vertep.ios
         TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
@@ -71,3 +89,4 @@ schemes:
         - package: Core/CoreTests
         - package: LocalStore/LocalStoreTests
         - package: DesignSystem/DesignSystemTests
+        - package: Search/SearchTests

@@ -1,0 +1,32 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# Checks on every pull request that the committed Tokens.swift is exactly what
+# scripts/tokens.py generates from the design tokens. A hand edit to Tokens.swift, or a
+# token change without a new Tokens.swift, fails the job.
+
+name: Tokens
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tokens-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tokens:
+    name: Token check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out
+        # actions/checkout v7.0.1, pinned to its commit. It does not fetch submodules.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Compare Tokens.swift with the generator output
+        run: python3 scripts/tokens.py --check

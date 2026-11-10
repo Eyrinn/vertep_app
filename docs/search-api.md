@@ -21,21 +21,20 @@ that gives the answers below.
 
 ## Base URL
 
-The app reads the proxy's base URL from its local build configuration, which git does not
-track. The base URL is a scheme, a host, an optional port and an optional path prefix, for
-example `https://proxy.example.com`. The client appends each path below to the base URL
-unchanged: with that base URL, the search request goes to
-`https://proxy.example.com/v1/search`.
+A client is configured with the proxy's base URL. The base URL is a scheme, a host, an
+optional port and an optional path prefix, for example `https://proxy.example.com`. The
+client appends each path below to the base URL unchanged: with that base URL, the search
+request goes to `https://proxy.example.com/v1/search`.
 
-The app uses the proxy only when a base URL is configured and the device supports App
-Attest. The Simulator does not support App Attest, so the app on the Simulator does not use
-the proxy.
+A client uses the proxy only when it has a base URL and the device supports App Attest,
+because every session starts with an App Attest key. The Simulator does not support App
+Attest, so a client on the Simulator does not use the proxy.
 
 ## Attestation and sessions
 
 The proxy answers a search only for a session, and opens a session only for a key that
-Apple's App Attest service has attested. The client uses `DCAppAttestService` from Apple's
-DeviceCheck framework.
+Apple's App Attest service has attested. A client creates its key, its attestation and its
+assertions with `DCAppAttestService` from Apple's DeviceCheck framework.
 
 | Term | Meaning |
 |---|---|
@@ -51,9 +50,10 @@ Apple's documentation describes the format of an attestation and an assertion, a
 server validates them: "Establishing your app's integrity" and "Validating apps that connect
 to your server".
 
-Debug builds of the app attest in the App Attest development environment. Release builds
-attest in the production environment. A proxy that serves debug builds must accept
-attestations from the development environment.
+An attestation comes from one of two App Attest environments. A debug build of a client
+attests in the development environment, and a release build attests in the production
+environment. A proxy that serves debug builds must accept attestations from the development
+environment.
 
 ### Get a challenge
 
@@ -128,7 +128,7 @@ Errors: `invalid_request`, `invalid_challenge`, `key_rejected`, `too_many_reques
 ### Open a session with a stored key
 
 The client sends this request when it has a stored key id and no valid session: at the first
-search after the app starts, and after the proxy reported an expired session.
+search after the client starts, and after the proxy reported an expired session.
 
 The client:
 
@@ -275,5 +275,5 @@ To open a session:
 2. If no key id is stored, the client attests a new key and opens a session with it. If the
    proxy answers `key_rejected` to the new key, the search fails.
 
-The client keeps the session token in memory only. A new launch of the app opens a new
+The client keeps the session token in memory only. A new launch of the client opens a new
 session with the stored key.

@@ -1,0 +1,12 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+// The app's build settings for search in a release build. They are the settings of
+// Config/App.xcconfig, local values included, with one difference: a release build never
+// carries the personal TMDB key, even when Config/Local.xcconfig sets one. Anyone who has
+// the app can read its Info.plist, so a key in it is a published key.
+
+#include "App.xcconfig"
+
+VERTEP_TMDB_API_KEY =

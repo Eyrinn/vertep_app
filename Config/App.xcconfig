@@ -1,0 +1,17 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+// The app's build settings for search. Every value here is empty, so a plain clone
+// builds an app whose search reports that it is not configured. Config/Local.xcconfig,
+// which git ignores, sets the values on one machine; copy Config/Local.xcconfig.example
+// to start it.
+
+// The base URL of a search proxy that follows docs/search-api.md.
+VERTEP_PROXY_BASE_URL =
+
+// A personal TMDB API key, used where the proxy is not. Only a debug build carries it:
+// Config/App.Release.xcconfig clears it.
+VERTEP_TMDB_API_KEY =
+
+#include? "Local.xcconfig"

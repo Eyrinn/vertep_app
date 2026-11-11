@@ -1,0 +1,21 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+// Copy this file to Config/Local.xcconfig and fill in the values you use. Git ignores
+// Config/Local.xcconfig, so the values stay on this machine. Run scripts/generate.sh
+// again after you create the file. Leave a value empty to turn that search off.
+//
+// The app searches through the proxy when a proxy URL is set and the device supports
+// App Attest, which the Simulator does not. Otherwise a debug build searches TMDB
+// directly when a personal key is set. With neither, search reports that it is not
+// configured.
+
+// The base URL of a search proxy that follows docs/search-api.md, with HTTPS. In this
+// file `//` starts a comment, so write the slashes after the scheme as `/$()/`, for
+// example: https:/$()/proxy.example.com
+VERTEP_PROXY_BASE_URL =
+
+// A personal TMDB API key (version 3), from the API section of your TMDB account
+// settings.
+VERTEP_TMDB_API_KEY =

@@ -32,6 +32,8 @@ packages:
     path: Packages/LocalStore
   DesignSystem:
     path: Packages/DesignSystem
+  Search:
+    path: Packages/Search
 
 targets:
   Vertep:
@@ -43,8 +45,25 @@ targets:
       - package: Core
       - package: LocalStore
       - package: DesignSystem
+      - package: Search
+    # The search settings: empty in a plain clone, set on one machine by the git-ignored
+    # Config/Local.xcconfig. The release file clears the personal TMDB key, so only a
+    # debug build carries it.
+    configFiles:
+      Debug: Config/App.xcconfig
+      Release: Config/App.Release.xcconfig
     settings:
+      configs:
+        # The App Attest environment the app attests in. The entitlements file reads it.
+        Debug:
+          VERTEP_APP_ATTEST_ENVIRONMENT: development
+        Release:
+          VERTEP_APP_ATTEST_ENVIRONMENT: production
       base:
+        CODE_SIGN_ENTITLEMENTS: App/Vertep.entitlements
+        # The generated Info.plist is merged with this file, which carries the search
+        # settings to the app.
+        INFOPLIST_FILE: App/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: app.vertep.ios
         TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
@@ -57,6 +76,20 @@ targets:
         INFOPLIST_KEY_UIRequiresFullScreen: YES
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         SWIFT_EMIT_LOC_STRINGS: YES
+
+  # Runs the attestation and a title search against the configured proxy on a physical
+  # iPhone. It is in its own scheme, never in the Vertep scheme that CI runs.
+  VertepDeviceTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: DeviceTests
+    dependencies:
+      - target: Vertep
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.vertep.ios.devicetests
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   Vertep:
@@ -71,3 +104,13 @@ schemes:
         - package: Core/CoreTests
         - package: LocalStore/LocalStoreTests
         - package: DesignSystem/DesignSystemTests
+        - package: Search/SearchTests
+  VertepDeviceTests:
+    build:
+      targets:
+        Vertep: all
+        VertepDeviceTests: [test]
+    test:
+      config: Debug
+      targets:
+        - VertepDeviceTests

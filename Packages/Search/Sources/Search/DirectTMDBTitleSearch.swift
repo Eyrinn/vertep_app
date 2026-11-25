@@ -105,24 +105,27 @@ private struct MultiSearch: Decodable {
                 id: id,
                 title: title,
                 originalTitle: original ?? title,
-                year: Self.year(of: isMovie ? releaseDate : firstAirDate),
+                year: TMDBDate.year(of: isMovie ? releaseDate : firstAirDate),
                 posterPath: posterPath.nonEmpty,
                 director: nil,
                 creator: nil
             )
-        }
-
-        /// The year of a date that TMDB writes as `YYYY-MM-DD`, or nil when it writes none.
-        static func year(of date: String?) -> Int? {
-            guard let date, date.count >= 4 else { return nil }
-            return Int(date.prefix(4))
         }
     }
 
     let results: [Item]
 }
 
-private extension Optional where Wrapped == String {
+/// The dates TMDB writes.
+enum TMDBDate {
+    /// The year of a date that TMDB writes as `YYYY-MM-DD`, or nil when it writes none.
+    static func year(of date: String?) -> Int? {
+        guard let date, date.count >= 4 else { return nil }
+        return Int(date.prefix(4))
+    }
+}
+
+extension Optional where Wrapped == String {
     /// The string, or nil when it is empty.
     var nonEmpty: String? {
         switch self {

@@ -432,7 +432,8 @@ Response `200 OK`:
 |---|---|---|
 | `account` | object | The account, as "The account object" describes it. |
 
-Errors: `access_token_expired`, `session_expired`, `too_many_requests`, `unavailable`.
+Errors: `invalid_request`, `access_token_expired`, `session_expired`, `too_many_requests`,
+`unavailable`.
 
 ### Set or change the username
 

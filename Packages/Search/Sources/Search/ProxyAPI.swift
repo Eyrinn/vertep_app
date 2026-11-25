@@ -98,8 +98,8 @@ enum ProxyAPI {
             self = code
         }
 
-        /// What a search reports for this code when the client does not retry it.
-        var searchError: TitleSearchError {
+        /// What a request reports for this code when the client does not retry it.
+        var failure: ProxyFailure {
             switch self {
             case .invalidRequest, .invalidQuery, .invalidChallenge, .keyRejected: .failed
             case .sessionExpired, .tooManyRequests, .unavailable: .unavailable

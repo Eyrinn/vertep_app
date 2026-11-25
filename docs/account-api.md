@@ -397,7 +397,10 @@ Content-Type: application/json
 The service ends the session of the refresh token. Response `204 No Content`, with no body.
 The service also answers `204 No Content` when the refresh token no longer works.
 
-The client deletes its access token and its refresh token, whatever the answer is.
+If the service answers `session_expired`, the client keeps its tokens, opens a new attested
+session as `docs/search-api.md` describes, and sends the sign-out again, once. The refresh
+token is still needed for that second request. After the last answer, whatever it is, the
+client deletes its access token and its refresh token.
 
 Errors: `invalid_request`, `session_expired`, `too_many_requests`, `unavailable`.
 

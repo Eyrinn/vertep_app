@@ -328,7 +328,8 @@ the title has no English overview, `overview` and `overviewLanguage` are empty.
 
 ### Errors of the title details request
 
-Errors: `invalid_query`, `session_expired`, `too_many_requests`, `unavailable`.
+Errors: `invalid_request`, `invalid_query`, `session_expired`, `too_many_requests`,
+`unavailable`.
 
 The proxy answers `unavailable` to the whole request when it cannot get the details of a
 requested id for a reason other than that TMDB does not know the id. Thus an id in
@@ -354,13 +355,13 @@ An error response has a status code from the table below and this body:
 
 | Status | Code | Meaning | What the client does |
 |---|---|---|---|
-| 400 | `invalid_request` | The request is malformed or a field is missing. | Reports that the search failed. No retry. |
-| 400 | `invalid_query` | `q` has fewer than 2 characters after trimming, or `lang` is not `uk` or `en`. For the title details request: `ids` has no id, more than 20 ids, or an id that is not `tmdb:movie:<id>` or `tmdb:tv:<id>`; `lang` is not `uk` or `en`; or `cast` is not an integer from 1 to 100 or `all`. | Reports that the search failed. No retry. |
+| 400 | `invalid_request` | The request is malformed or a field is missing. | Reports that the request failed. No retry. |
+| 400 | `invalid_query` | `q` has fewer than 2 characters after trimming, or `lang` is not `uk` or `en`. For the title details request: `ids` has no id, more than 20 ids, or an id that is not `tmdb:movie:<id>` or `tmdb:tv:<id>`; `lang` is not `uk` or `en`; or `cast` is not an integer from 1 to 100 or `all`. | Reports that the request failed. No retry. |
 | 400 | `invalid_challenge` | The proxy did not issue the challenge, the challenge was already used, or it is no longer valid. | Gets a new challenge and sends the request again, once. |
-| 401 | `session_expired` | The session token is missing, has expired, or the proxy does not know it. | Opens a new session and sends the search again, once. |
-| 403 | `key_rejected` | The proxy does not accept the key, the attestation or the assertion. | For the stored key: deletes the stored key id, attests a new key and opens a session with it, once. For a new key: reports that the search failed. No retry. |
-| 429 | `too_many_requests` | The proxy does not accept more requests from this client now. | Reports that search is unavailable. No retry. |
-| 503 | `unavailable` | The proxy cannot answer now. | Reports that search is unavailable. No retry. |
+| 401 | `session_expired` | The session token is missing, has expired, or the proxy does not know it. | Opens a new session and sends the request again, once. |
+| 403 | `key_rejected` | The proxy does not accept the key, the attestation or the assertion. | For the stored key: deletes the stored key id, attests a new key and opens a session with it, once. For a new key: reports that the request failed. No retry. |
+| 429 | `too_many_requests` | The proxy does not accept more requests from this client now. | Reports that the proxy is unavailable. No retry. |
+| 503 | `unavailable` | The proxy cannot answer now. | Reports that the proxy is unavailable. No retry. |
 
 A client treats a response that is not JSON, a status code that this table does not list, or
 an unknown `code` as `unavailable`.

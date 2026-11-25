@@ -224,6 +224,116 @@ The results hold only movies and series, never people.
 Errors: `invalid_request`, `invalid_query`, `session_expired`, `too_many_requests`,
 `unavailable`.
 
+## Title details
+
+```
+GET /v1/titles?ids=<id>,<id>&lang=<language>&cast=<count>
+Authorization: Bearer <session token>
+```
+
+The client sends the session token as for the title search.
+
+| Parameter | Meaning |
+|---|---|
+| `ids` | 1 to 20 title ids, separated by `,`. Each id is `tmdb:movie:<id>` for a movie or `tmdb:tv:<id>` for a series, where `<id>` is the TMDB id. The proxy answers a repeated id once. |
+| `lang` | The app language: `uk` or `en`, as for the title search. |
+| `cast` | Optional. An integer from 1 to 100, or `all`. It sets how many cast names a result has: at most that number, or every name for `all`. Without `cast`, a result has at most 10 cast names. |
+
+Example request:
+
+```
+GET /v1/titles?ids=tmdb:movie:348,tmdb:tv:1396,tmdb:movie:999999999&lang=en&cast=2
+Authorization: Bearer example-session-token-1
+```
+
+Response `200 OK`:
+
+```json
+{
+  "results": [
+    {
+      "id": "tmdb:movie:348",
+      "type": "movie",
+      "title": "Alien",
+      "originalTitle": "Alien",
+      "year": 1979,
+      "posterPath": "/example-poster-1.jpg",
+      "director": "Ridley Scott",
+      "creator": null,
+      "cast": ["Example Actor 1", "Example Actor 2"],
+      "overview": "An example overview of the movie.",
+      "overviewLanguage": "en",
+      "genres": [
+        {"id": 27, "name": "Horror"},
+        {"id": 878, "name": "Science Fiction"}
+      ],
+      "runtime": 117
+    },
+    {
+      "id": "tmdb:tv:1396",
+      "type": "tv",
+      "title": "Breaking Bad",
+      "originalTitle": "Breaking Bad",
+      "year": 2008,
+      "posterPath": null,
+      "director": null,
+      "creator": "Vince Gilligan",
+      "cast": ["Example Actor 3", "Example Actor 4"],
+      "overview": null,
+      "overviewLanguage": null,
+      "genres": [
+        {"id": 18, "name": "Drama"}
+      ],
+      "runtime": 47
+    }
+  ],
+  "notFound": ["tmdb:movie:999999999"]
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `results` | list | One result for each requested id that TMDB knows, once for a repeated id. The results follow the order of the first appearance of each id in `ids`. |
+| `notFound` | list of strings | Each requested id that TMDB does not know, once for a repeated id. An empty list means that TMDB knows every requested id. |
+
+An id is either in `results` or in `notFound`, never in both. Each result has these fields:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | string | The requested id. |
+| `type` | string | `movie` or `tv`. It agrees with `id`. |
+| `title` | string | As in the title search. |
+| `originalTitle` | string | As in the title search. |
+| `year` | integer or empty | As in the title search. |
+| `posterPath` | string or empty | As in the title search. |
+| `director` | string or empty | As in the title search. |
+| `creator` | string or empty | As in the title search. |
+| `cast` | list of strings | The names of the cast in billing order, as many as `cast` sets. An empty list means that TMDB lists no cast for the title. |
+| `overview` | string or empty | A short description of the title. See "Overview language" below. |
+| `overviewLanguage` | string or empty | The language of `overview`: `uk` or `en`. It is empty when `overview` is empty. |
+| `genres` | list | The genres of the title. An empty list means that TMDB lists no genre for the title. |
+| `genres[].id` | integer | The TMDB genre id. It is the same in each language. |
+| `genres[].name` | string | The name of the genre in the requested language. |
+| `runtime` | integer or empty | The runtime in minutes. For a series, the runtime of one episode. |
+
+### Overview language
+
+For a `uk` request, a result has the Ukrainian overview and `overviewLanguage` is `uk`. When
+the title has no Ukrainian overview, the result has the English overview and
+`overviewLanguage` is `en`. When the title has no overview in either language, `overview`
+and `overviewLanguage` are empty.
+
+For an `en` request, a result has the English overview and `overviewLanguage` is `en`. When
+the title has no English overview, `overview` and `overviewLanguage` are empty.
+
+### Errors of the title details request
+
+Errors: `invalid_query`, `session_expired`, `too_many_requests`, `unavailable`.
+
+The proxy answers `unavailable` to the whole request when it cannot get the details of a
+requested id for a reason other than that TMDB does not know the id. Thus an id in
+`notFound` is always an id that TMDB does not know.
+
 ## Errors
 
 An error response has a status code from the table below and this body:

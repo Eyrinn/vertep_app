@@ -67,6 +67,23 @@ import Testing
         _ = try await store.folders()
     }
 
+    @Test func theSummaryCountsTheWatchedTitles() async throws {
+        let store = try LocalDatabase.inMemory().folderStore
+        let ids = try await FolderFixtures.addTitles(1...3, to: store)
+        let model = FolderFixtures.model(store: store)
+        await model.reload()
+        #expect(model.watchedCount == 0)
+
+        await model.setWatched(true, for: ids[0])
+        await model.setWatched(true, for: ids[2])
+        #expect(model.watchedCount == 2)
+
+        await model.setWatched(false, for: ids[0])
+        await model.delete(ids[2])
+        #expect(model.rows.count == 2)
+        #expect(model.watchedCount == 0)
+    }
+
     @Test func undoWithinTheHoldPutsTheRowBackInItsPlace() async throws {
         let store = try LocalDatabase.inMemory().folderStore
         let ids = try await FolderFixtures.addTitles(1...3, to: store)

@@ -76,6 +76,9 @@ final class FolderModel {
     /// title.
     var showsEmptyState: Bool { hasLoaded && rows.isEmpty }
 
+    /// How many titles of the folder are watched.
+    var watchedCount: Int { rows.count(where: \.isWatched) }
+
     @ObservationIgnored let store: any FolderStore
     @ObservationIgnored let details: any TitleDetailsProvider
     @ObservationIgnored let network: any NetworkStatus

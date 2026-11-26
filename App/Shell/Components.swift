@@ -88,9 +88,9 @@ struct AccentButton: View {
                         .accessibilityHidden(true)
                 }
             }
-            .font(.system(size: size == .large ? 17 : 15, weight: .semibold))
+            .font(.system(size: size == .large ? 17 : 14, weight: .semibold))
             .foregroundStyle(theme.textOnAccent)
-            .padding(.horizontal, size == .large ? Primitives.Space._24 : Primitives.Space._20)
+            .padding(.horizontal, Primitives.Space._24)
             .frame(minHeight: size == .large ? 50 : 36)
             .background(theme.accentFill, in: Capsule())
         }

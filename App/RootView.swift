@@ -41,6 +41,10 @@ struct RootView: View {
                 .tag(Page.random)
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+        // The pages reach the bottom edge of the screen, so the folder's fade and toast
+        // can sit where the design puts them. Each page still keeps its content out of
+        // the home indicator's area.
+        .ignoresSafeArea(.container, edges: .bottom)
         .safeAreaInset(edge: .top, spacing: 0) {
             TopBar(page: $page, showsSettings: $showsSettings)
                 .padding(.horizontal, Primitives.Space._24)

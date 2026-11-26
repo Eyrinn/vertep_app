@@ -58,6 +58,55 @@ enum ProxyAPI {
         }
     }
 
+    struct DetailsResponse: Decodable {
+        let results: [DetailsResult]
+        let notFound: [String]
+    }
+
+    struct DetailsResult: Decodable {
+        struct Genre: Decodable {
+            let id: Int
+            let name: String
+        }
+
+        let id: String
+        let type: String
+        let title: String
+        let originalTitle: String
+        let year: Int?
+        let posterPath: String?
+        let director: String?
+        let creator: String?
+        let cast: [String]
+        let overview: String?
+        let overviewLanguage: String?
+        let genres: [Genre]
+        let runtime: Int?
+
+        /// The details as Core declares them, or nil when the id is not a TMDB id or does
+        /// not agree with its type. A director is kept only for a movie and a creator only
+        /// for a series. An overview language other than `uk` or `en` leaves the overview
+        /// without a language, and an empty overview has none.
+        var titleDetails: TitleDetails? {
+            guard let id = TitleID(rawValue: id), id.mediaType.rawValue == type else { return nil }
+            let overview = overview.flatMap { $0.isEmpty ? nil : $0 }
+            return TitleDetails(
+                id: id,
+                title: title,
+                originalTitle: originalTitle,
+                year: year,
+                posterPath: posterPath,
+                director: id.mediaType == .movie ? director : nil,
+                creator: id.mediaType == .tv ? creator : nil,
+                cast: Array(cast.prefix(TitleDetails.castCount)),
+                overview: overview,
+                overviewLanguage: overview == nil ? nil : overviewLanguage.flatMap(SearchLanguage.init(rawValue:)),
+                genres: genres.map { TitleGenre(id: $0.id, name: $0.name) },
+                runtime: runtime
+            )
+        }
+    }
+
     struct ErrorBody: Decodable {
         struct Detail: Decodable {
             let code: String
@@ -98,8 +147,8 @@ enum ProxyAPI {
             self = code
         }
 
-        /// What a search reports for this code when the client does not retry it.
-        var searchError: TitleSearchError {
+        /// What a request reports for this code when the client does not retry it.
+        var failure: ProxyFailure {
             switch self {
             case .invalidRequest, .invalidQuery, .invalidChallenge, .keyRejected: .failed
             case .sessionExpired, .tooManyRequests, .unavailable: .unavailable

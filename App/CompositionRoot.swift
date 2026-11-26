@@ -18,13 +18,15 @@ import Search
 final class CompositionRoot {
     let folderStore: any FolderStore
     let titleSearch: any TitleSearch
+    /// Gets the details of the titles in a folder, from the same source as the search.
+    let titleDetails: any TitleDetailsProvider
     /// The language a title search asks for: the language the app runs in.
     let searchLanguage = SearchLanguage(appLocalizations: Bundle.main.preferredLocalizations)
 
     private let logger = Logger(subsystem: "app.vertep.ios", category: "CompositionRoot")
 
     init() {
-        titleSearch = Self.makeTitleSearch(
+        (titleSearch, titleDetails) = Self.makeTitleServices(
             SearchConfiguration(
                 infoDictionary: Bundle.main.infoDictionary,
                 readsPersonalKey: Self.readsPersonalKey
@@ -49,25 +51,30 @@ final class CompositionRoot {
     private static let readsPersonalKey = false
     #endif
 
-    /// Picks the title search: the proxy when a proxy URL is configured and the device
-    /// supports App Attest, otherwise TMDB directly when a debug build has a personal key,
-    /// otherwise a search that reports that it is not configured.
-    private static func makeTitleSearch(_ configuration: SearchConfiguration, logger: Logger) -> any TitleSearch {
+    /// Picks the title search and the title details by one choice: the proxy when a proxy
+    /// URL is configured and the device supports App Attest, otherwise TMDB directly when a
+    /// debug build has a personal key, otherwise a search and details that report that
+    /// they are not configured. Through the proxy, both share one session.
+    static func makeTitleServices(
+        _ configuration: SearchConfiguration,
+        logger: Logger
+    ) -> (any TitleSearch, any TitleDetailsProvider) {
         let attestation = DeviceAppAttestation()
         switch configuration.choice(appAttestSupported: attestation.isSupported) {
         case .proxy(let baseURL):
-            logger.info("Title search goes through the proxy.")
-            return ProxyTitleSearch(
+            logger.info("Title search and details go through the proxy.")
+            let session = ProxySession(
                 baseURL: baseURL,
                 attestation: attestation,
                 keyStore: KeychainKeyIDStore(service: "app.vertep.ios.app-attest")
             )
+            return (ProxyTitleSearch(session: session), ProxyTitleDetails(session: session))
         case .direct(let apiKey):
-            logger.info("Title search goes to TMDB directly.")
-            return DirectTMDBTitleSearch(apiKey: apiKey)
+            logger.info("Title search and details go to TMDB directly.")
+            return (DirectTMDBTitleSearch(apiKey: apiKey), DirectTMDBTitleDetails(apiKey: apiKey))
         case .notConfigured:
-            logger.info("Title search is not configured.")
-            return NotConfiguredTitleSearch()
+            logger.info("Title search and details are not configured.")
+            return (NotConfiguredTitleSearch(), NotConfiguredTitleDetailsProvider())
         }
     }
 

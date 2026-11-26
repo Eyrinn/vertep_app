@@ -39,6 +39,9 @@ public struct FolderItem: Sendable, Hashable {
     public var watchedUpdatedAt: Date
     public var addedAt: Date
     public var updatedAt: Date
+    /// When the title was removed from the folder, or nil while it is in the folder. A
+    /// removed title stays stored, so that a later sync can pass the removal on.
+    public var deletedAt: Date?
 
     public var mediaType: MediaType { titleID.mediaType }
 
@@ -48,7 +51,8 @@ public struct FolderItem: Sendable, Hashable {
         isWatched: Bool,
         watchedUpdatedAt: Date,
         addedAt: Date,
-        updatedAt: Date
+        updatedAt: Date,
+        deletedAt: Date? = nil
     ) {
         self.folderID = folderID
         self.titleID = titleID
@@ -56,5 +60,6 @@ public struct FolderItem: Sendable, Hashable {
         self.watchedUpdatedAt = watchedUpdatedAt
         self.addedAt = addedAt
         self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
     }
 }

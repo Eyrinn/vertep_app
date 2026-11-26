@@ -55,12 +55,15 @@ struct PendingUndo: Equatable {
 }
 
 /// The state of the folder screen: the titles of the personal folder, newest added
-/// first, the watched toggle, and the removal with its undo.
+/// first, the watched toggle, the removal with its undo, and the refresh of the stored
+/// metadata.
 @MainActor
 @Observable
 final class FolderModel {
     /// How long a removal can be undone. The design holds a toast this long.
     static let undoDuration: Duration = .seconds(Primitives.Duration.hold)
+    /// Metadata older than this is fetched again.
+    static let metadataMaximumAge: TimeInterval = 90 * 24 * 60 * 60
 
     /// The titles of the folder, the last added first. A watched title keeps its place.
     private(set) var rows: [FolderRow] = []
@@ -74,6 +77,8 @@ final class FolderModel {
     var showsEmptyState: Bool { hasLoaded && rows.isEmpty }
 
     @ObservationIgnored let store: any FolderStore
+    @ObservationIgnored let details: any TitleDetailsProvider
+    @ObservationIgnored let network: any NetworkStatus
     @ObservationIgnored let language: SearchLanguage
     @ObservationIgnored private let personalFolderName: String
     @ObservationIgnored private let now: @Sendable () -> Date
@@ -81,21 +86,30 @@ final class FolderModel {
     @ObservationIgnored private var folderID: UUID?
     /// Ends the undo of `pendingUndo` once `undoDuration` has passed.
     @ObservationIgnored private(set) var undoTimer: Task<Void, Never>?
+    /// The refresh that runs now, if one does.
+    @ObservationIgnored private var refresh: Task<Void, Never>?
     @ObservationIgnored let logger = Logger(subsystem: "app.vertep.ios", category: "FolderModel")
 
     /// - Parameters:
+    ///   - details: gets the details of the titles whose metadata is out of date.
+    ///   - network: tells whether a refresh can send requests.
+    ///   - language: the language of the app, which rows and details are shown in.
     ///   - personalFolderName: the name the personal folder gets if the model has to
     ///     create it.
     ///   - now: the current time, which every change is stored with.
     ///   - sleep: waits for a duration; the undo of a removal ends when it returns.
     init(
         store: any FolderStore,
+        details: any TitleDetailsProvider,
+        network: any NetworkStatus,
         language: SearchLanguage,
         personalFolderName: String,
         now: @escaping @Sendable () -> Date = { Date() },
         sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
     ) {
         self.store = store
+        self.details = details
+        self.network = network
         self.language = language
         self.personalFolderName = personalFolderName
         self.now = now
@@ -114,6 +128,76 @@ final class FolderModel {
             hasLoaded = true
         } catch {
             logger.error("Could not read the folder: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    /// The folder screen appeared: reads the folder and refreshes the metadata that is out
+    /// of date.
+    func screenAppeared() async {
+        await reload()
+        await refreshMetadata()
+    }
+
+    /// The app entered the foreground: reads the folder and refreshes the metadata that is
+    /// out of date.
+    func enteredForeground() async {
+        await reload()
+        await refreshMetadata()
+    }
+
+    /// Whether the metadata of a title has to be fetched again: there is none, it has only
+    /// the fields of a search result, it is older than `metadataMaximumAge`, or it is in
+    /// another language than the app's.
+    func needsRefresh(_ metadata: TitleMetadata?, at date: Date) -> Bool {
+        guard let metadata else { return true }
+        return !metadata.hasDetails
+            || metadata.language != language
+            || date.timeIntervalSince(metadata.fetchedAt) > Self.metadataMaximumAge
+    }
+
+    /// Gets new details for every row whose metadata is out of date, in requests of at
+    /// most `TitleDetailsRequest.maximumCount` titles, and stores them. Sends nothing while
+    /// the device is offline. A title the details report as not found keeps its stored
+    /// metadata and stays in the folder. A call made while a refresh runs waits for it and
+    /// starts no other.
+    func refreshMetadata() async {
+        if let refresh {
+            await refresh.value
+            return
+        }
+        let task = Task { await self.runRefresh() }
+        refresh = task
+        await task.value
+        refresh = nil
+    }
+
+    private func runRefresh() async {
+        let date = now()
+        let outdated = rows.filter { needsRefresh($0.metadata, at: date) }.map(\.id)
+        guard !outdated.isEmpty, await network.isOnline() else { return }
+        var fetched = false
+        for start in stride(from: 0, to: outdated.count, by: TitleDetailsRequest.maximumCount) {
+            let batch = Array(outdated[start..<min(start + TitleDetailsRequest.maximumCount, outdated.count)])
+            guard let request = TitleDetailsRequest(ids: batch, language: language) else { continue }
+            let response: TitleDetailsResponse
+            do {
+                response = try await details.details(request)
+            } catch {
+                // The next appear or the next return to the foreground tries again.
+                logger.info("Title details are not available now: \(String(describing: error), privacy: .public)")
+                break
+            }
+            let fetchedAt = now()
+            do {
+                try await store.write(response.results.map { TitleMetadata($0, language: language, fetchedAt: fetchedAt) })
+                fetched = true
+            } catch {
+                logger.error("Could not store title details: \(String(describing: error), privacy: .public)")
+                break
+            }
+        }
+        if fetched {
+            await reload()
         }
     }
 

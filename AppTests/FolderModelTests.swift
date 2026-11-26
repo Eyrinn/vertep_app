@@ -151,12 +151,17 @@ enum FolderFixtures {
     @MainActor
     static func model(
         store: any FolderStore,
+        details: any TitleDetailsProvider = FakeTitleDetails(),
+        network: any NetworkStatus = FakeNetworkStatus(online: true),
+        language: SearchLanguage = .en,
         now: Date = date(10_000),
         sleep: @escaping @Sendable (Duration) async throws -> Void = { _ in }
     ) -> FolderModel {
         FolderModel(
             store: store,
-            language: .en,
+            details: details,
+            network: network,
+            language: language,
             personalFolderName: folderName,
             now: { now },
             sleep: sleep

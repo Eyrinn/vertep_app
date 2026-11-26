@@ -275,7 +275,9 @@ These requests read a folder that any account published. They are not "Signed in
 sends only the attested session token.
 
 A link that never existed, that was unpublished, or that belongs to a blocked or a deleted
-account gets one answer: `folder_unavailable`. A client cannot tell these cases apart.
+account gets one answer: `folder_unavailable`. A link id, a username or a slug in the path
+that does not have its form, for example a link that a messenger cut short, gets the same
+answer. A client cannot tell these cases apart.
 
 ### Read a folder by its link id
 
@@ -412,14 +414,14 @@ An error response has the body that `docs/search-api.md` describes in "Errors":
 
 | Status | Code | Meaning | Returned by | What the client does |
 |---|---|---|---|---|
-| 400 | `invalid_request` | The request is malformed, a field is missing, or a field has the wrong type. A `folderId` that is not a UUID, a `mode` that is not `folder` or `titles`, a `version` outside its range, or a link id, a username or a slug in a path that does not have its form. | Every request. | Reports that the operation failed. No retry. |
+| 400 | `invalid_request` | The request is malformed, a field is missing, or a field has the wrong type. A `folderId` that is not a UUID, a `mode` that is not `folder` or `titles`, a `version` outside its range, or a link id in the path of an owner request that does not have its form. | Every request. | Reports that the operation failed. No retry. |
 | 400 | `invalid_title` | The title is empty, has more than 100 characters, or has whitespace at the start or the end. | Publish, update. | Asks the person for another title. |
 | 400 | `invalid_slug` | The slug does not have 1 to 60 characters of `a-z`, `0-9` and `-`, or starts or ends with `-`. | Publish, update. | Asks the person for another slug. |
 | 400 | `invalid_title_ids` | `titleIds` has more than 5000 ids, has an id twice, has an id that is not `tmdb:movie:<id>` or `tmdb:tv:<id>`, or is empty in `titles` mode. | Publish, update. | Reports that the operation failed. No retry. |
 | 401 | `session_expired` | The attested session token is missing, has expired, or the service does not know it. | Every request. | Opens a new attested session as `docs/search-api.md` describes, and sends the request again, once. |
 | 401 | `access_token_expired` | The access token is missing, has expired, or the service does not know it. | Every "Signed in" request. | Refreshes the session as `docs/account-api.md` describes, and sends the request again, once. |
 | 404 | `link_not_found` | This account has no live link with this link id. | Update, read the link. | Marks the folder as not published. No retry. |
-| 404 | `folder_unavailable` | The link never existed, was unpublished, or belongs to a blocked or a deleted account. For a username: no account has it, or the account has no live link. | Read a folder, read the folders of a username, confirm an add. | Tells the person that the folder is unavailable. No retry. |
+| 404 | `folder_unavailable` | The link never existed, was unpublished, or belongs to a blocked or a deleted account. For a username: no account has it, or the account has no live link. A link id, a username or a slug in the path that does not have its form gets this answer too. | Read a folder, read the folders of a username, confirm an add. | Tells the person that the folder is unavailable. No retry. |
 | 409 | `title_not_allowed` | The service does not allow this title. | Publish, update. | Asks the person for another title. |
 | 409 | `slug_not_allowed` | The service does not allow this slug. | Publish, update. | Asks the person for another slug. |
 | 409 | `slug_taken` | Another live link of this account has this slug. | Publish, update. | Asks the person for another slug. |

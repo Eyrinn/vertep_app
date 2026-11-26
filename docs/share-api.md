@@ -450,8 +450,11 @@ update and marks the folder as not published.
 **Read the counters.** The client reads the link when the person opens the published state
 of the folder. It shows `views`, `uniqueViews` and `adds`.
 
-**Unpublish.** The client sends the unpublish request, and then deletes the stored link id
-and version. To publish the folder again, it sends a new publish request with `version` 1.
+**Unpublish.** The client sends the unpublish request. It keeps the stored link id and
+version until the service answers `204 No Content`, and then deletes them. If the request
+fails with any other answer, the client keeps the link id and the version, and shows the
+folder as published. The person can then unpublish again. To publish the folder again, the
+client sends a new publish request with `version` 1.
 
 **Open a link.** The client reads the folder for the address of the link, gets the details
 of its titles, and shows them. After the person adds titles, it confirms the add with the

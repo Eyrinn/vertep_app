@@ -87,9 +87,11 @@ is the TMDB id: a positive decimal integer of 1 to 10 digits, with no leading ze
 
 A snapshot never holds the watched state of a title, or any other field of the folder.
 
-The title and the slug pass the same name rules as a username in `docs/account-api.md`: the
-service refuses a title or a slug that it does not allow. A slug is unique among the live
-links of one account. Two accounts can use the same slug.
+The form of the title and the slug is the form in the table above. The username format in
+`docs/account-api.md` does not apply to them. The service also checks them against the names
+that it does not allow, as it does for a username, and refuses a title with
+`title_not_allowed` or a slug with `slug_not_allowed`. A slug is unique among the live links
+of one account. Two accounts can use the same slug.
 
 The service replaces a snapshot only with a snapshot of a higher version. The client sets the
 version, and each update of a link has a higher version than every earlier snapshot of that

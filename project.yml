@@ -77,6 +77,20 @@ targets:
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         SWIFT_EMIT_LOC_STRINGS: YES
 
+  # Unit tests hosted in the app, for the types of the app target itself. The Vertep
+  # scheme runs them with the package tests, in CI too.
+  VertepTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AppTests
+    dependencies:
+      - target: Vertep
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.vertep.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+
   # Runs the attestation and a title search against the configured proxy on a physical
   # iPhone. It is in its own scheme, never in the Vertep scheme that CI runs.
   VertepDeviceTests:
@@ -96,11 +110,13 @@ schemes:
     build:
       targets:
         Vertep: all
+        VertepTests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
+        - VertepTests
         - package: Core/CoreTests
         - package: LocalStore/LocalStoreTests
         - package: DesignSystem/DesignSystemTests

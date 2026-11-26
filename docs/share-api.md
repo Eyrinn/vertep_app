@@ -82,7 +82,7 @@ A published folder is a snapshot of the folder. The service keeps only these fie
 
 Each title id is `tmdb:movie:<id>` for a movie or `tmdb:tv:<id>` for a series, where `<id>`
 is the TMDB id: a positive decimal integer of 1 to 10 digits, with no leading zero.
-`titleIds` has at most 1000 ids and no id twice. In `titles` mode it has at least one id. In
+`titleIds` has at most 5000 ids and no id twice. In `titles` mode it has at least one id. In
 `folder` mode it can be an empty list.
 
 A snapshot never holds the watched state of a title, or any other field of the folder.
@@ -412,7 +412,7 @@ An error response has the body that `docs/search-api.md` describes in "Errors":
 | 400 | `invalid_request` | The request is malformed, a field is missing, or a field has the wrong type. A `folderId` that is not a UUID, a `mode` that is not `folder` or `titles`, a `version` outside its range, or a link id, a username or a slug in a path that does not have its form. | Every request. | Reports that the operation failed. No retry. |
 | 400 | `invalid_title` | The title is empty, has more than 100 characters, or has whitespace at the start or the end. | Publish, update. | Asks the person for another title. |
 | 400 | `invalid_slug` | The slug does not have 1 to 60 characters of `a-z`, `0-9` and `-`, or starts or ends with `-`. | Publish, update. | Asks the person for another slug. |
-| 400 | `invalid_title_ids` | `titleIds` has more than 1000 ids, has an id twice, has an id that is not `tmdb:movie:<id>` or `tmdb:tv:<id>`, or is empty in `titles` mode. | Publish, update. | Reports that the operation failed. No retry. |
+| 400 | `invalid_title_ids` | `titleIds` has more than 5000 ids, has an id twice, has an id that is not `tmdb:movie:<id>` or `tmdb:tv:<id>`, or is empty in `titles` mode. | Publish, update. | Reports that the operation failed. No retry. |
 | 401 | `session_expired` | The attested session token is missing, has expired, or the service does not know it. | Every request. | Opens a new attested session as `docs/search-api.md` describes, and sends the request again, once. |
 | 401 | `access_token_expired` | The access token is missing, has expired, or the service does not know it. | Every "Signed in" request. | Refreshes the session as `docs/account-api.md` describes, and sends the request again, once. |
 | 404 | `link_not_found` | This account has no live link with this link id. | Update, read the link. | Marks the folder as not published. No retry. |

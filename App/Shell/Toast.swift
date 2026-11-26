@@ -5,11 +5,11 @@
 import DesignSystem
 import SwiftUI
 
-/// The design's toast: a capsule at the bottom of the screen with an icon, a short
-/// message and one action.
+/// The design's toast: a capsule at the bottom of the screen with an icon from the asset
+/// catalog, a short message and one action.
 struct Toast: View {
     let message: Text
-    var systemImage: String?
+    var icon: String?
     let actionTitle: Text
     let action: () -> Void
     @Environment(\.colorScheme) private var scheme
@@ -17,11 +17,9 @@ struct Toast: View {
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
         HStack(spacing: Primitives.Space._12) {
-            if let systemImage {
-                Image(systemName: systemImage)
-                    .font(.system(size: 15))
+            if let icon {
+                DesignIcon(name: icon, size: 16)
                     .foregroundStyle(theme.textSecondary)
-                    .frame(width: 16, height: 16)
                     .accessibilityHidden(true)
             }
             message

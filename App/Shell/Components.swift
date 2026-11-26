@@ -73,7 +73,8 @@ struct AccentButton: View {
     }
 
     let title: Text
-    var systemImage: String?
+    /// Whether the title ends with the design's arrow, which leads to another screen.
+    var trailingArrow = false
     var size: Size = .large
     let action: () -> Void
     @Environment(\.colorScheme) private var scheme
@@ -83,8 +84,9 @@ struct AccentButton: View {
         Button(action: action) {
             HStack(spacing: size == .large ? Primitives.Space._8 : Primitives.Space._4) {
                 title
-                if let systemImage {
-                    Image(systemName: systemImage)
+                if trailingArrow {
+                    // The design sets the arrow as a character after the title.
+                    Text(verbatim: "\u{2192}")
                         .accessibilityHidden(true)
                 }
             }

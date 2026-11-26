@@ -118,9 +118,7 @@ private struct WatchedBadge: View {
         // The light frame pads the badge by 9 with a gap of 5, the dark frame by 8 and 4.
         let isDark = scheme == .dark
         HStack(spacing: isDark ? Primitives.Space._4 : 5) {
-            Image(systemName: "checkmark")
-                .font(.system(size: 7, weight: .bold))
-                .frame(width: 8, height: 8)
+            DesignIcon(name: "IconCheck8", size: 8)
             Text("Watched", comment: "Mark on a folder row whose title is watched, and its VoiceOver value.")
                 .font(.system(size: 12, weight: .bold))
                 .lineLimit(1)
@@ -144,8 +142,7 @@ private struct WatchedToggle: View {
         let theme = ThemeTokens.forScheme(scheme)
         let inverse = ThemeTokens.forScheme(scheme == .dark ? .light : .dark)
         Button(action: action) {
-            Image(systemName: "checkmark")
-                .font(.system(size: 12, weight: .semibold))
+            DesignIcon(name: "IconCheck12", size: 12)
                 .foregroundStyle(isWatched ? inverse.textPrimary : theme.textTertiary)
                 .frame(width: 30, height: 30)
                 .background {
@@ -175,10 +172,8 @@ private struct DeleteButton: View {
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
         Button(action: action) {
-            Image(systemName: "trash")
-                .font(.system(size: 15))
+            DesignIcon(name: "IconTrash16", size: 16)
                 .foregroundStyle(theme.textTertiary)
-                .frame(width: 16, height: 16)
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }

@@ -56,7 +56,7 @@ struct FolderView: View {
                 if model.pendingUndo != nil {
                     Toast(
                         message: Text("Removed from the folder", comment: "Toast after a title is removed from the folder."),
-                        systemImage: "trash",
+                        icon: "IconTrash16",
                         actionTitle: Text("Undo", comment: "Button on the toast after a removal. It puts the title back in the folder."),
                         action: { Task { await model.undo() } }
                     )
@@ -117,10 +117,8 @@ private struct EmptyFolderCard: View {
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
         VStack(spacing: Primitives.Space._4) {
-            Image(systemName: "folder")
-                .font(.system(size: 30))
+            DesignIcon(name: "IconFolder36", size: 36)
                 .foregroundStyle(DesignValues.emptyFolderIcon(scheme))
-                .frame(width: 36, height: 36)
                 .padding(.bottom, Primitives.Space._8)
                 .accessibilityHidden(true)
             Text("The folder is empty", comment: "Title of the empty folder card.")
@@ -134,7 +132,7 @@ private struct EmptyFolderCard: View {
                 .foregroundStyle(Primitives.Color.curtain200)
             AccentButton(
                 title: Text("To search", comment: "Button on the empty folder card. It goes to Home, where search starts."),
-                systemImage: "arrow.right",
+                trailingArrow: true,
                 size: .compact,
                 action: goHome
             )

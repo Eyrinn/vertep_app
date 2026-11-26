@@ -1,16 +1,16 @@
 # Account API
 
 This document is the contract between the Vertep app and an account service. With it, a
-client can create an account, sign in, keep a session, set a username and delete the
-account. A service that follows it works with the app, so a fork can run its own service.
+client can create an account, sign in, keep a session, set a username, manage the passkeys
+of the account, end the sessions on other devices and delete the account. A service that
+follows it works with the app, so a fork can run its own service.
 
 **Scope.** This document describes only what a client sends and what it receives. It does
 not describe how a service verifies a passkey or an identity token, how it stores accounts,
 keys, challenges or tokens, or which names it refuses. A service can do those things in any
 way that gives the answers below.
 
-This document does not cover account recovery by an email code, or how an account adds or
-removes passkeys.
+This document does not cover account recovery by an email code.
 
 ## Conventions
 
@@ -66,9 +66,11 @@ same sign-in, the session of the new refresh token included, and answers
 `refresh_token_invalid`. So a client sends one refresh at a time, and stores the new refresh
 token before it sends another request.
 
-A step-up token is a fresh confirmation of the person who holds the account. An operation
-that needs it, such as account deletion, answers `step_up_required` without it. A step-up
-token is valid for 5 minutes and for one operation.
+A step-up token is a fresh confirmation of the person who holds the account. Adding a
+passkey, deleting a passkey and deleting the account need it, and each answers
+`step_up_required` without it. A step-up token is valid for 5 minutes and for one operation.
+Adding a passkey is one operation with two requests, and both requests send the same step-up
+token.
 
 ### The session response
 
@@ -107,9 +109,12 @@ A passkey registration, a passkey sign-in, a Sign in with Apple and a refresh ea
 
 ## Passkeys
 
-A passkey creates the account and signs it in. A client creates and uses passkeys with
-`ASAuthorizationPlatformPublicKeyCredentialProvider` from Apple's AuthenticationServices
-framework. Apple's documentation describes this in "Supporting passkeys".
+A passkey creates the account and signs it in. An account can have more than one passkey:
+"Passkey management" below describes how a signed-in client lists, adds and deletes them.
+
+A client creates and uses passkeys with `ASAuthorizationPlatformPublicKeyCredentialProvider`
+from Apple's AuthenticationServices framework. Apple's documentation describes this in
+"Supporting passkeys".
 
 The relying party id is the domain of the service. For the Vertep service it is
 `vertep.app`. A client can use a passkey for a domain only when the app's associated domains
@@ -404,6 +409,27 @@ client deletes its access token and its refresh token.
 
 Errors: `invalid_request`, `session_expired`, `too_many_requests`, `unavailable`.
 
+### Sign out on all other devices
+
+Signed in. This request needs no step-up token, because it only takes access away.
+
+```
+POST /v1/account/sign-out-others
+Authorization: Bearer <session token>
+Account-Token: <access token>
+```
+
+The request has no body.
+
+The service ends every session of the account except the session of the access token in
+`Account-Token`. The refresh tokens of the ended sessions no longer work: the service answers
+`refresh_token_invalid` to them. Response `204 No Content`, with no body.
+
+The client keeps its access token and its refresh token.
+
+Errors: `invalid_request`, `access_token_expired`, `session_expired`, `too_many_requests`,
+`unavailable`.
+
 ## Account
 
 ### Get the current account
@@ -571,6 +597,213 @@ service answers `credential_rejected` to them.
 Errors: `invalid_request`, `step_up_required`, `access_token_expired`, `session_expired`,
 `too_many_requests`, `unavailable`.
 
+## Passkey management
+
+Every request in this section is "Signed in". Adding and deleting a passkey also need a
+step-up token.
+
+### The passkey object
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | string | The passkey id. The client sends it unchanged to delete the passkey. |
+| `providerName` | string | The name of the passkey provider: the app that stores the passkey, for example `iCloud Keychain`. It is `Passkey` when the service does not know the provider. |
+| `createdAt` | string | The time the passkey was added to the account, in RFC 3339 format, in UTC. |
+| `lastUsedAt` | string | The last time the passkey signed in or confirmed a step-up, in RFC 3339 format, in UTC. Before its first use, it is the same as `createdAt`. |
+
+### List the passkeys
+
+Signed in.
+
+```
+GET /v1/account/passkeys
+Authorization: Bearer <session token>
+Account-Token: <access token>
+```
+
+Response `200 OK`:
+
+```json
+{
+  "passkeys": [
+    {
+      "id": "example-passkey-id-1",
+      "providerName": "iCloud Keychain",
+      "createdAt": "2026-11-25T10:00:00Z",
+      "lastUsedAt": "2026-11-26T08:30:00Z"
+    },
+    {
+      "id": "example-passkey-id-2",
+      "providerName": "Passkey",
+      "createdAt": "2026-11-26T09:00:00Z",
+      "lastUsedAt": "2026-11-26T09:00:00Z"
+    }
+  ]
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `passkeys` | array of objects | The passkeys of the account, oldest first, as "The passkey object" describes them. The array is empty when the account has no passkey. |
+
+Errors: `invalid_request`, `access_token_expired`, `session_expired`, `too_many_requests`,
+`unavailable`.
+
+### Get options to add a passkey
+
+Signed in, with a step-up token.
+
+```
+POST /v1/account/passkeys/add-options
+Authorization: Bearer <session token>
+Account-Token: <access token>
+Content-Type: application/json
+```
+
+```json
+{
+  "stepUpToken": "example-step-up-token-2"
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `stepUpToken` | string | A step-up token of this account that no operation used yet. |
+
+The service checks the step-up token, but does not use it. The client sends the same step-up
+token again to add the passkey.
+
+Response `200 OK`:
+
+```json
+{
+  "challenge": "c2Vjb25kLWV4YW1wbGUtY2g=",
+  "rpId": "vertep.app",
+  "userId": "ZXhhbXBsZS11c2VyLWlkLTEtZXhhbXBsZS11c2VyLWlk",
+  "userName": "Vertep",
+  "excludeCredentialIds": [
+    "ZXhhbXBsZS1jcmVkZW50aWFsLWlkLTE="
+  ]
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `challenge` | string, Base64 | A new challenge. |
+| `rpId` | string | The relying party id. |
+| `userId` | string, Base64 | The user id of the new passkey. |
+| `userName` | string | The name that the system shows for the passkey. |
+| `excludeCredentialIds` | array of strings, Base64 | The credential id of every passkey of the account. |
+
+Errors: `invalid_request`, `step_up_required`, `access_token_expired`, `session_expired`,
+`too_many_requests`, `unavailable`.
+
+### Add a passkey
+
+Signed in, with a step-up token.
+
+The client:
+
+1. Gets a step-up token.
+2. Gets options to add a passkey, with that step-up token.
+3. Creates a `ASAuthorizationPlatformPublicKeyCredentialProvider` for `rpId`, and calls
+   `createCredentialRegistrationRequest(challenge:name:userID:)` with the decoded
+   `challenge`, `userName` and the decoded `userId`. It sets
+   `userVerificationPreference` to `.required` and `attestationPreference` to `.none`. It
+   sets `excludedCredentials` to one `ASAuthorizationPlatformPublicKeyCredentialDescriptor`
+   for each decoded id in `excludeCredentialIds`, so that a provider that already stores a
+   passkey of the account does not create a second one.
+4. Performs the request with `ASAuthorizationController`.
+5. Sends the request below with the same step-up token and the values of the
+   `ASAuthorizationPlatformPublicKeyCredentialRegistration` it got.
+
+```
+POST /v1/account/passkeys/add
+Authorization: Bearer <session token>
+Account-Token: <access token>
+Content-Type: application/json
+```
+
+```json
+{
+  "stepUpToken": "example-step-up-token-2",
+  "challenge": "c2Vjb25kLWV4YW1wbGUtY2g=",
+  "credentialId": "ZXhhbXBsZS1jcmVkZW50aWFsLWlkLTI=",
+  "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIn0=",
+  "attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YQ=="
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `stepUpToken` | string | The step-up token that the client sent to get the options. |
+| `challenge` | string, Base64 | The challenge, as the service sent it. |
+| `credentialId` | string, Base64 | The credential id. |
+| `clientDataJSON` | string, Base64 | The client data JSON. |
+| `attestationObject` | string, Base64 | The attestation object. |
+
+The service adds the passkey to the signed-in account, and uses the step-up token. The
+account keeps its other passkeys.
+
+Response `200 OK`:
+
+```json
+{
+  "passkey": {
+    "id": "example-passkey-id-2",
+    "providerName": "Passkey",
+    "createdAt": "2026-11-26T09:00:00Z",
+    "lastUsedAt": "2026-11-26T09:00:00Z"
+  }
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `passkey` | object | The new passkey, as "The passkey object" describes it. |
+
+Errors: `invalid_request`, `invalid_challenge`, `credential_rejected`, `step_up_required`,
+`access_token_expired`, `session_expired`, `too_many_requests`, `unavailable`.
+
+### Delete a passkey
+
+Signed in, with a step-up token.
+
+```
+POST /v1/account/passkeys/delete
+Authorization: Bearer <session token>
+Account-Token: <access token>
+Content-Type: application/json
+```
+
+```json
+{
+  "passkeyId": "example-passkey-id-2",
+  "stepUpToken": "example-step-up-token-3"
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `passkeyId` | string | The `id` of the passkey, as the list gave it. |
+| `stepUpToken` | string | A step-up token of this account that no operation used yet. |
+
+The service deletes the passkey and ends every session that the passkey opened, by a passkey
+registration or by a passkey sign-in. The refresh tokens of those sessions no longer work:
+the service answers `refresh_token_invalid` to them. When the passkey opened the session of
+the client that sends the deletion, that session ends too. Response `204 No Content`, with no
+body. The service also answers `204 No Content` when the account has no passkey with this id.
+
+The deleted passkey stays on the person's devices until the person removes it, but the
+service answers `credential_rejected` to it.
+
+The service refuses to delete the last passkey of an account that does not sign in with
+Apple, because the account then has no way to sign in. It answers `last_sign_in_method` and
+keeps the passkey. An account that signs in with Apple can delete all of its passkeys.
+
+Errors: `invalid_request`, `step_up_required`, `last_sign_in_method`, `access_token_expired`,
+`session_expired`, `too_many_requests`, `unavailable`.
+
 ## Errors
 
 An error response has the body that `docs/search-api.md` describes in "Errors":
@@ -592,14 +825,15 @@ An error response has the body that `docs/search-api.md` describes in "Errors":
 | Status | Code | Meaning | Returned by | What the client does |
 |---|---|---|---|---|
 | 400 | `invalid_request` | The request is malformed or a field is missing. | Every request. | Reports that the operation failed. No retry. |
-| 400 | `invalid_challenge` | The service did not issue the passkey challenge or the nonce, it was already used, or it is no longer valid. | Passkey registration, passkey sign-in, Sign in with Apple, step-up. | Gets a new challenge or nonce, and asks the person again. |
+| 400 | `invalid_challenge` | The service did not issue the passkey challenge or the nonce, it was already used, or it is no longer valid. | Passkey registration, passkey sign-in, Sign in with Apple, step-up, add a passkey. | Gets a new challenge or nonce, and asks the person again. |
 | 400 | `invalid_username` | The username does not have 3 to 20 characters of `a-z`, `0-9` and `_`. | Set the username. | Tells the person which characters a name can have. No retry. |
 | 401 | `session_expired` | The attested session token is missing, has expired, or the service does not know it. | Every request. | Opens a new attested session as `docs/search-api.md` describes, and sends the request again, once. |
 | 401 | `access_token_expired` | The access token is missing, has expired, or the service does not know it. | Every "Signed in" request. | Refreshes the session and sends the request again, once. |
-| 401 | `refresh_token_invalid` | The refresh token has expired, was already used, was ended by a sign-out, or the service does not know it. | Refresh the session. | Deletes its tokens. The person signs in again. |
-| 401 | `credential_rejected` | The service does not accept the passkey, the identity token or the authorization code. For a step-up, also a passkey or an Apple ID of another account. | Passkey registration, passkey sign-in, Sign in with Apple, step-up. | Reports that the sign-in or the confirmation failed. No retry. |
+| 401 | `refresh_token_invalid` | The refresh token has expired, was already used, or the service does not know it. Or its session ended: by a sign-out, by a sign-out on all other devices, or by the deletion of the passkey that opened it. | Refresh the session. | Deletes its tokens. The person signs in again. |
+| 401 | `credential_rejected` | The service does not accept the passkey, the identity token or the authorization code. For a step-up, also a passkey or an Apple ID of another account. To add a passkey, also a passkey that the service already knows. | Passkey registration, passkey sign-in, Sign in with Apple, step-up, add a passkey. | Reports that the sign-in or the confirmation failed. No retry. |
 | 403 | `account_blocked` | The account is blocked. The service ended its sessions. | Passkey sign-in, Sign in with Apple, refresh the session. | Deletes its tokens and tells the person that the account is blocked. No retry. |
-| 403 | `step_up_required` | The step-up token is missing, has expired, was already used, or belongs to another account. | Delete the account. | Gets a new step-up token, and sends the request again with it, once. |
+| 403 | `step_up_required` | The step-up token is missing, has expired, was already used, or belongs to another account. | Get options to add a passkey, add a passkey, delete a passkey, delete the account. | Gets a new step-up token, and sends the request again with it, once. To add a passkey, it starts again from the options. |
+| 409 | `last_sign_in_method` | The passkey is the last passkey of an account that does not sign in with Apple. | Delete a passkey. | Tells the person that the account needs another passkey before it can delete this one. No retry. |
 | 409 | `username_taken` | Another account has this name, or holds it after a change or a deletion. | Set the username. | Asks the person for another name. |
 | 409 | `username_reserved` | The service keeps this name for itself. | Set the username. | Asks the person for another name. |
 | 409 | `username_not_allowed` | The service does not allow this name. | Set the username. | Asks the person for another name. |
@@ -631,6 +865,16 @@ above.
 
 The client sends one refresh at a time. A request that needs a refresh while another refresh
 runs waits for that refresh and uses its tokens.
+
+**Manage the passkeys.** The client lists the passkeys of the account. To add a passkey, it
+gets a step-up token, gets options to add a passkey with it, creates the passkey, and adds it
+with the same step-up token. To delete a passkey, it gets a step-up token, then sends the
+deletion with it. If a request answers `step_up_required`, the client gets a new step-up token
+and starts the operation again, once. If the deletion answers `last_sign_in_method`, the
+passkey stays, and the client tells the person why.
+
+**Sign out on all other devices.** The client sends the request and keeps its own tokens. The
+other devices are signed out at their next refresh.
 
 **Delete the account.** The client gets a step-up token, then sends the deletion with it. If
 the deletion answers `step_up_required`, the client gets a new step-up token and sends the

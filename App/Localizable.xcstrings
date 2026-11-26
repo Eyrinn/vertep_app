@@ -1,6 +1,131 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld titles · %lld watched" : {
+      "comment" : "Line under the folder tab: the number of titles in the folder, then how many of them are watched.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@titles@ · %#@watched@"
+          },
+          "substitutions" : {
+            "titles" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg title"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg titles"
+                    }
+                  }
+                }
+              }
+            },
+            "watched" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg watched"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg watched"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@titles@ · %#@watched@"
+          },
+          "substitutions" : {
+            "titles" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg фільм"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg фільми"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg фільмів"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg фільму"
+                    }
+                  }
+                }
+              }
+            },
+            "watched" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg переглянуто"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg переглянуто"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg переглянуто"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg переглянуто"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "A title, an actor or a mood, by text or by voice" : {
       "comment" : "The hint under the prompt on Home.",
       "localizations" : {
@@ -82,6 +207,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Темна"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "comment" : "Control on a folder row that removes the title from the folder, and its VoiceOver action.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити"
           }
         }
       }
@@ -171,6 +313,40 @@
         }
       }
     },
+    "Mark as not watched" : {
+      "comment" : "Control on a folder row that turns the watched mark off, and its VoiceOver action.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark as not watched"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позначити як непереглянуте"
+          }
+        }
+      }
+    },
+    "Mark as watched" : {
+      "comment" : "Control on a folder row that turns the watched mark on, and its VoiceOver action.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark as watched"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позначити як переглянуте"
+          }
+        }
+      }
+    },
     "My folder" : {
       "comment" : "Name of the personal folder the app creates on its first launch.",
       "localizations" : {
@@ -218,6 +394,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Рандом"
+          }
+        }
+      }
+    },
+    "Removed from the folder" : {
+      "comment" : "Toast after a title is removed from the folder.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed from the folder"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалено з теки"
           }
         }
       }
@@ -320,6 +513,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "До пошуку"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "comment" : "Button on the toast after a removal. It puts the title back in the folder.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скасувати"
+          }
+        }
+      }
+    },
+    "Unknown title" : {
+      "comment" : "Title of a folder row while the app has stored nothing about the title.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown title"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Невідома назва"
+          }
+        }
+      }
+    },
+    "Watched" : {
+      "comment" : "Mark on a folder row whose title is watched, and its VoiceOver value.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watched"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переглянуто"
           }
         }
       }

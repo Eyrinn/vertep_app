@@ -25,6 +25,7 @@ enum Page: Int, CaseIterable, Identifiable {
 /// The app's root: a paged carousel of Folder, Home and Random that starts on Home, with
 /// the page indicator above it and the settings gear on Home.
 struct RootView: View {
+    let folder: FolderModel
     @State private var page: Page = RootView.launchPage
     @State private var showsSettings = RootView.launchShowsSettings
     @Environment(\.colorScheme) private var scheme
@@ -32,7 +33,7 @@ struct RootView: View {
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
         TabView(selection: $page) {
-            FolderView(goHome: { withAnimation { page = .home } })
+            FolderView(model: folder, goHome: { withAnimation { page = .home } })
                 .tag(Page.folder)
             HomeView()
                 .tag(Page.home)
@@ -40,6 +41,10 @@ struct RootView: View {
                 .tag(Page.random)
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+        // The pages reach the bottom edge of the screen, so the folder's fade and toast
+        // can sit where the design puts them. Each page still keeps its content out of
+        // the home indicator's area.
+        .ignoresSafeArea(.container, edges: .bottom)
         .safeAreaInset(edge: .top, spacing: 0) {
             TopBar(page: $page, showsSettings: $showsSettings)
                 .padding(.horizontal, Primitives.Space._24)
@@ -47,6 +52,11 @@ struct RootView: View {
         .background(theme.bgCanvas.ignoresSafeArea())
         .sheet(isPresented: $showsSettings) {
             SettingsSheet()
+        }
+        // The folder screen appears whenever it becomes the shown page.
+        .onChange(of: page, initial: true) {
+            guard page == .folder else { return }
+            Task { await folder.screenAppeared() }
         }
     }
 }
@@ -99,5 +109,5 @@ private struct TopBar: View {
 }
 
 #Preview {
-    RootView()
+    RootView(folder: .preview())
 }

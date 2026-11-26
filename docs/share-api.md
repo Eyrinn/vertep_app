@@ -221,7 +221,8 @@ Content-Type: application/json
 | `version` | integer | As in "The snapshot". It is higher than the version of every earlier snapshot of this link. |
 
 The request sends the whole snapshot, and the service replaces every field of the snapshot.
-The link id and the addresses of the link do not change. A new slug changes `namedUrl`.
+The link id and `url` do not change. A new slug changes `namedUrl`, and the client shows the
+`namedUrl` of the latest response.
 
 The service answers `200 OK` with the share object. If the version is not higher than the
 version of the snapshot that the service keeps, the service changes nothing and answers

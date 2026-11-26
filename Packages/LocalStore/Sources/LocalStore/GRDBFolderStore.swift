@@ -42,7 +42,7 @@ struct GRDBFolderStore: FolderStore {
     func items(in folderID: UUID) async throws -> [FolderItem] {
         try await writer.read { db in
             try FolderItemRecord
-                .filter(Column("folderId") == folderID.uuidString)
+                .filter(Column("folderId") == folderID.uuidString && Column("deletedAt") == nil)
                 .order(Column("addedAt"), Column("titleId"))
                 .fetchAll(db)
                 .map { try $0.item() }
@@ -56,5 +56,123 @@ struct GRDBFolderStore: FolderStore {
             try FolderItemRecord(item).insert(db, onConflict: .ignore)
             return db.changesCount > 0
         }
+    }
+
+    @discardableResult
+    func add(_ result: TitleSearchResult, language: SearchLanguage, to folderID: UUID, at date: Date) async throws -> Bool {
+        try await writer.write { db in
+            let key: StatementArguments = [folderID.uuidString, result.id.rawValue]
+            let deletedAt = try Date?.fetchOne(
+                db,
+                sql: "SELECT deletedAt FROM folderItem WHERE folderId = ? AND titleId = ?",
+                arguments: key
+            )
+            switch deletedAt {
+            case .some(.some):
+                // A removed title comes back as a new add, with its other fields kept.
+                try db.execute(
+                    sql: """
+                        UPDATE folderItem SET deletedAt = NULL, addedAt = ?, updatedAt = ?
+                        WHERE folderId = ? AND titleId = ?
+                        """,
+                    arguments: [date, date] + key
+                )
+            case .some(.none):
+                // The title is in the folder already.
+                return false
+            case .none:
+                let item = FolderItem(
+                    folderID: folderID,
+                    titleID: result.id,
+                    isWatched: false,
+                    watchedUpdatedAt: date,
+                    addedAt: date,
+                    updatedAt: date
+                )
+                try FolderItemRecord(item).insert(db)
+            }
+            try TitleMetadataRecord(TitleMetadata(result, language: language, fetchedAt: date))
+                .insert(db, onConflict: .replace)
+            return true
+        }
+    }
+
+    @discardableResult
+    func remove(_ titleID: TitleID, from folderID: UUID, at date: Date) async throws -> Bool {
+        try await writer.write { db in
+            try db.execute(
+                sql: """
+                    UPDATE folderItem SET deletedAt = ?
+                    WHERE folderId = ? AND titleId = ? AND deletedAt IS NULL
+                    """,
+                arguments: [date, folderID.uuidString, titleID.rawValue]
+            )
+            return db.changesCount > 0
+        }
+    }
+
+    @discardableResult
+    func restore(_ titleID: TitleID, in folderID: UUID) async throws -> Bool {
+        try await writer.write { db in
+            try db.execute(
+                sql: """
+                    UPDATE folderItem SET deletedAt = NULL
+                    WHERE folderId = ? AND titleId = ? AND deletedAt IS NOT NULL
+                    """,
+                arguments: [folderID.uuidString, titleID.rawValue]
+            )
+            return db.changesCount > 0
+        }
+    }
+
+    @discardableResult
+    func setWatched(_ isWatched: Bool, for titleID: TitleID, in folderID: UUID, at date: Date) async throws -> Bool {
+        try await writer.write { db in
+            try db.execute(
+                sql: """
+                    UPDATE folderItem SET isWatched = ?, watchedUpdatedAt = ?, updatedAt = ?
+                    WHERE folderId = ? AND titleId = ? AND deletedAt IS NULL
+                    """,
+                arguments: [isWatched, date, date, folderID.uuidString, titleID.rawValue]
+            )
+            return db.changesCount > 0
+        }
+    }
+
+    func metadata(for titleIDs: [TitleID], preferring language: SearchLanguage) async throws -> [TitleID: TitleMetadata] {
+        try await writer.read { db in
+            let rows = try TitleMetadataRecord
+                .filter(titleIDs.map(\.rawValue).contains(Column("titleId")))
+                .fetchAll(db)
+                .map { try $0.metadata() }
+            var chosen: [TitleID: TitleMetadata] = [:]
+            for row in rows {
+                guard let current = chosen[row.titleID] else {
+                    chosen[row.titleID] = row
+                    continue
+                }
+                if Self.prefers(row, over: current, language: language) {
+                    chosen[row.titleID] = row
+                }
+            }
+            return chosen
+        }
+    }
+
+    func write(_ metadata: [TitleMetadata]) async throws {
+        try await writer.write { db in
+            for metadata in metadata {
+                try TitleMetadataRecord(metadata).insert(db, onConflict: .replace)
+            }
+        }
+    }
+
+    /// Whether `row` is a better choice than `current`: the requested language first, then
+    /// the metadata fetched last.
+    private static func prefers(_ row: TitleMetadata, over current: TitleMetadata, language: SearchLanguage) -> Bool {
+        let rowMatches = row.language == language
+        let currentMatches = current.language == language
+        if rowMatches != currentMatches { return rowMatches }
+        return row.fetchedAt > current.fetchedAt
     }
 }

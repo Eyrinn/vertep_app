@@ -49,6 +49,7 @@ struct FolderItemRecord: Codable, Sendable, FetchableRecord, PersistableRecord {
     var watchedUpdatedAt: Date
     var addedAt: Date
     var updatedAt: Date
+    var deletedAt: Date?
 
     init(_ item: FolderItem) {
         folderId = item.folderID
@@ -58,6 +59,7 @@ struct FolderItemRecord: Codable, Sendable, FetchableRecord, PersistableRecord {
         watchedUpdatedAt = item.watchedUpdatedAt
         addedAt = item.addedAt
         updatedAt = item.updatedAt
+        deletedAt = item.deletedAt
     }
 
     func item() throws -> FolderItem {
@@ -70,7 +72,75 @@ struct FolderItemRecord: Codable, Sendable, FetchableRecord, PersistableRecord {
             isWatched: isWatched,
             watchedUpdatedAt: watchedUpdatedAt,
             addedAt: addedAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            deletedAt: deletedAt
+        )
+    }
+}
+
+/// A row of the title metadata table. It stays inside this package; callers see
+/// `TitleMetadata`. The cast and the genres are stored as JSON.
+struct TitleMetadataRecord: Codable, Sendable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = Schema.titleMetadataTable
+
+    var titleId: String
+    var language: String
+    var title: String
+    var originalTitle: String
+    var year: Int?
+    var posterPath: String?
+    var director: String?
+    var creator: String?
+    var castNames: [String]?
+    var overview: String?
+    var overviewLanguage: String?
+    var genres: [TitleGenre]?
+    var runtime: Int?
+    var fetchedAt: Date
+
+    init(_ metadata: TitleMetadata) {
+        titleId = metadata.titleID.rawValue
+        language = metadata.language.rawValue
+        title = metadata.title
+        originalTitle = metadata.originalTitle
+        year = metadata.year
+        posterPath = metadata.posterPath
+        director = metadata.director
+        creator = metadata.creator
+        castNames = metadata.cast
+        overview = metadata.overview
+        overviewLanguage = metadata.overviewLanguage?.rawValue
+        genres = metadata.genres
+        runtime = metadata.runtime
+        fetchedAt = metadata.fetchedAt
+    }
+
+    func metadata() throws -> TitleMetadata {
+        guard let titleID = TitleID(rawValue: titleId) else {
+            throw LocalStoreError.invalidTitleID(titleId)
+        }
+        guard let language = SearchLanguage(rawValue: language) else {
+            throw LocalStoreError.unknownLanguage(language)
+        }
+        let overviewLanguage = try overviewLanguage.map { raw in
+            guard let language = SearchLanguage(rawValue: raw) else { throw LocalStoreError.unknownLanguage(raw) }
+            return language
+        }
+        return TitleMetadata(
+            titleID: titleID,
+            language: language,
+            title: title,
+            originalTitle: originalTitle,
+            year: year,
+            posterPath: posterPath,
+            director: director,
+            creator: creator,
+            cast: castNames,
+            overview: overview,
+            overviewLanguage: overviewLanguage,
+            genres: genres,
+            runtime: runtime,
+            fetchedAt: fetchedAt
         )
     }
 }
@@ -79,4 +149,5 @@ struct FolderItemRecord: Codable, Sendable, FetchableRecord, PersistableRecord {
 public enum LocalStoreError: Error, Equatable {
     case unknownFolderKind(String)
     case invalidTitleID(String)
+    case unknownLanguage(String)
 }

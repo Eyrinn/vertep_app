@@ -9,7 +9,7 @@ import SwiftUI
 /// loads, when it fails, or when the title has no poster.
 struct Poster: View {
     let url: URL?
-    var width: CGFloat = 64
+    var width: CGFloat = 56
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
@@ -29,7 +29,13 @@ struct Poster: View {
             }
         }
         .frame(width: width, height: width * 3 / 2)
-        .overlay(theme.posterTint)
+        // The light design warms the poster with the tint, multiplied; the dark design
+        // shows it untinted.
+        .overlay {
+            if scheme == .light {
+                theme.posterTint.blendMode(.multiply)
+            }
+        }
         .clipShape(shape)
         .overlay(shape.strokeBorder(theme.posterRing, lineWidth: 1))
         .accessibilityHidden(true)

@@ -18,14 +18,13 @@ struct FolderRowView: View {
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
         HStack(alignment: .top, spacing: Primitives.Space._12) {
-            Poster(url: row.posterURL)
-                .saturation(row.isWatched ? 0 : 1)
-                .opacity(row.isWatched ? 0.6 : 1)
-            VStack(alignment: .leading, spacing: Primitives.Space._4) {
+            Poster(url: row.posterURL, width: 56)
+            VStack(alignment: .leading, spacing: 3) {
                 title
-                    .font(.system(size: 17, weight: .semibold, design: .serif))
-                    .foregroundStyle(row.isWatched ? theme.textSecondary : theme.textPrimary)
-                    .lineLimit(2)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(theme.textPrimary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 if !row.detailsLine.isEmpty {
                     Text(verbatim: row.detailsLine)
                         .font(.system(size: 13))
@@ -33,26 +32,26 @@ struct FolderRowView: View {
                         .lineLimit(1)
                 }
                 if let overview = row.overview {
+                    // The design sets the overview on a 20 pt line.
                     Text(verbatim: overview)
-                        .font(.system(size: 13))
+                        .font(.system(size: 15))
+                        .lineSpacing(2)
+                        .padding(.vertical, 1)
                         .foregroundStyle(theme.textSecondary)
                         .lineLimit(2)
                 }
-                if let cast = row.castLine {
-                    Text(verbatim: cast)
-                        .font(.system(size: 12))
-                        .foregroundStyle(theme.textTertiary)
-                        .lineLimit(1)
-                }
-                if row.isWatched {
-                    Label {
-                        Text("Watched", comment: "Mark on a folder row whose title is watched, and its VoiceOver value.")
-                    } icon: {
-                        Image(systemName: "checkmark")
+                if row.isWatched || row.castLine != nil {
+                    HStack(spacing: Primitives.Space._8) {
+                        if row.isWatched {
+                            WatchedBadge()
+                        }
+                        if let cast = row.castLine {
+                            Text(verbatim: cast)
+                                .font(.system(size: 12))
+                                .foregroundStyle(theme.textTertiary)
+                                .lineLimit(1)
+                        }
                     }
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(theme.statusWatched)
-                    .padding(.top, Primitives.Space._2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -62,14 +61,17 @@ struct FolderRowView: View {
             }
         }
         .padding(Primitives.Space._12)
-        .background(
-            row.isWatched ? theme.statusWatchedTint : theme.bgElevated,
-            in: RoundedRectangle(cornerRadius: Primitives.Radius._16, style: .continuous)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: Primitives.Radius._16, style: .continuous)
-                .strokeBorder(theme.borderSubtle, lineWidth: 1)
-        )
+        .background {
+            // A title that is not watched has no card; a watched one is tinted.
+            if row.isWatched {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(theme.statusWatchedTint)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Primitives.Radius._16, style: .continuous)
+                            .strokeBorder(DesignValues.watchedRowBorder(scheme), lineWidth: 1)
+                    )
+            }
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(
@@ -105,6 +107,33 @@ struct FolderRowView: View {
     }
 }
 
+/// The watched badge before the cast of a watched row.
+private struct WatchedBadge: View {
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let theme = ThemeTokens.forScheme(scheme)
+        // The badge's text and icon take the other theme's primary text color.
+        let inverse = ThemeTokens.forScheme(scheme == .dark ? .light : .dark)
+        // The light frame pads the badge by 9 with a gap of 5, the dark frame by 8 and 4.
+        let isDark = scheme == .dark
+        HStack(spacing: isDark ? Primitives.Space._4 : 5) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 7, weight: .bold))
+                .frame(width: 8, height: 8)
+            Text("Watched", comment: "Mark on a folder row whose title is watched, and its VoiceOver value.")
+                .font(.system(size: 12, weight: .bold))
+                .lineLimit(1)
+        }
+        .foregroundStyle(inverse.textPrimary)
+        .padding(.horizontal, isDark ? Primitives.Space._8 : 9)
+        .frame(height: 24)
+        .background(theme.statusWatched, in: Capsule())
+        .fixedSize()
+        .accessibilityHidden(true)
+    }
+}
+
 /// The round toggle of a folder row that marks its title watched.
 private struct WatchedToggle: View {
     let isWatched: Bool
@@ -113,12 +142,19 @@ private struct WatchedToggle: View {
 
     var body: some View {
         let theme = ThemeTokens.forScheme(scheme)
+        let inverse = ThemeTokens.forScheme(scheme == .dark ? .light : .dark)
         Button(action: action) {
             Image(systemName: "checkmark")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(isWatched ? theme.textOnBrand : theme.textTertiary)
-                .frame(width: 36, height: 36)
-                .background(isWatched ? theme.toggleOn : theme.chipFill, in: Circle())
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(isWatched ? inverse.textPrimary : theme.textTertiary)
+                .frame(width: 30, height: 30)
+                .background {
+                    if isWatched {
+                        Circle().fill(theme.statusWatched)
+                    } else {
+                        Circle().strokeBorder(theme.borderStrong, lineWidth: 1.5)
+                    }
+                }
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
@@ -141,7 +177,8 @@ private struct DeleteButton: View {
         Button(action: action) {
             Image(systemName: "trash")
                 .font(.system(size: 15))
-                .foregroundStyle(theme.statusDestructive)
+                .foregroundStyle(theme.textTertiary)
+                .frame(width: 16, height: 16)
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }

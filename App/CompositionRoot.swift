@@ -21,11 +21,14 @@ final class CompositionRoot {
     /// Gets the details of the titles in a folder, from the same source as the search.
     let titleDetails: any TitleDetailsProvider
     /// The language a title search asks for: the language the app runs in.
-    let searchLanguage = SearchLanguage(appLocalizations: Bundle.main.preferredLocalizations)
+    let searchLanguage: SearchLanguage
+    /// The state of the folder screen.
+    let folder: FolderModel
 
     private let logger = Logger(subsystem: "app.vertep.ios", category: "CompositionRoot")
 
     init() {
+        searchLanguage = SearchLanguage(appLocalizations: Bundle.main.preferredLocalizations)
         (titleSearch, titleDetails) = Self.makeTitleServices(
             SearchConfiguration(
                 infoDictionary: Bundle.main.infoDictionary,
@@ -41,6 +44,21 @@ final class CompositionRoot {
             // reason, rather than run on a store that would lose everything.
             fatalError("Could not open the local database at \(url.path): \(error)")
         }
+        folder = FolderModel(
+            store: folderStore,
+            details: titleDetails,
+            network: SystemNetworkStatus(),
+            language: searchLanguage,
+            personalFolderName: Self.personalFolderName
+        )
+    }
+
+    /// The name of the personal folder the app creates on its first launch.
+    static var personalFolderName: String {
+        String(
+            localized: "My folder",
+            comment: "Name of the personal folder the app creates on its first launch."
+        )
     }
 
     /// Whether this build reads the personal TMDB key. Only a debug build does: a release
@@ -81,12 +99,8 @@ final class CompositionRoot {
     /// Runs once at every launch. The first launch creates the personal folder; every
     /// later launch finds it and creates nothing.
     func prepareLaunch() async {
-        let defaultName = String(
-            localized: "My folder",
-            comment: "Name of the personal folder the app creates on its first launch."
-        )
         do {
-            _ = try await folderStore.ensurePersonalFolder(defaultName: defaultName)
+            _ = try await folderStore.ensurePersonalFolder(defaultName: Self.personalFolderName)
         } catch {
             logger.error("Could not create the personal folder: \(String(describing: error), privacy: .public)")
         }

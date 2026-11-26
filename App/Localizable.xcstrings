@@ -86,6 +86,23 @@
         }
       }
     },
+    "Delete" : {
+      "comment" : "Control on a folder row that removes the title from the folder, and its VoiceOver action.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити"
+          }
+        }
+      }
+    },
     "Everything in “%@” is already watched" : {
       "comment" : "Hint on the random screen when no title can be picked. The argument is the folder name.",
       "localizations" : {
@@ -171,6 +188,40 @@
         }
       }
     },
+    "Mark as not watched" : {
+      "comment" : "Control on a folder row that turns the watched mark off, and its VoiceOver action.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark as not watched"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позначити як непереглянуте"
+          }
+        }
+      }
+    },
+    "Mark as watched" : {
+      "comment" : "Control on a folder row that turns the watched mark on, and its VoiceOver action.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark as watched"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позначити як переглянуте"
+          }
+        }
+      }
+    },
     "My folder" : {
       "comment" : "Name of the personal folder the app creates on its first launch.",
       "localizations" : {
@@ -218,6 +269,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Рандом"
+          }
+        }
+      }
+    },
+    "Removed from the folder" : {
+      "comment" : "Toast after a title is removed from the folder.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed from the folder"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалено з теки"
           }
         }
       }
@@ -320,6 +388,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "До пошуку"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "comment" : "Button on the toast after a removal. It puts the title back in the folder.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скасувати"
+          }
+        }
+      }
+    },
+    "Unknown title" : {
+      "comment" : "Title of a folder row while the app has stored nothing about the title.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown title"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Невідома назва"
+          }
+        }
+      }
+    },
+    "Watched" : {
+      "comment" : "Mark on a folder row whose title is watched, and its VoiceOver value.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watched"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переглянуто"
           }
         }
       }

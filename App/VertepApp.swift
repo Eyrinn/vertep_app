@@ -11,12 +11,19 @@ struct VertepApp: App {
     private let root = CompositionRoot()
     // The theme chosen in the settings. It is stored on this device only.
     @AppStorage(Appearance.storageKey) private var appearance: Appearance = .system
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            RootView(folder: root.folder)
                 .onChange(of: appearance, initial: true) { apply(appearance) }
                 .task { await root.prepareLaunch() }
+                // Each return to the foreground reads the folder again and refreshes the
+                // metadata of its titles that is out of date.
+                .onChange(of: scenePhase, initial: true) {
+                    guard scenePhase == .active else { return }
+                    Task { await root.folder.enteredForeground() }
+                }
         }
     }
 

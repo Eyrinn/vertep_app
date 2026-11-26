@@ -440,6 +440,12 @@ and sends the whole snapshot with the new version. It stores the new version bef
 the request. A client that is offline keeps only the latest snapshot of each link, and sends
 it when it is online again.
 
+If the service answers `too_many_requests` or `unavailable`, or the client gets no answer, the
+client does not send the update again at once. It keeps the snapshot as the latest snapshot
+of the link, as it does offline, and sends it later: with the next change of the folder, or
+when the app comes to the foreground again. "No retry" in the table of error codes means no
+retry at once, and does not mean that the client drops the update.
+
 If the service answers `stale_version`:
 
 1. If the client already sent a higher version of this link, it drops this update. The
